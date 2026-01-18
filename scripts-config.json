@@ -1,0 +1,5 @@
+{
+    "scripts": {
+        "analyze:bulk": "ts-node src/scripts/analyze-bulk-export.ts"
+    }
+}

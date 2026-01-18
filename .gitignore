@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### AL ###
 #Template for AL projects for Dynamics 365 Business Central
 #launch.json folder
@@ -20,3 +21,37 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+=======
+# Environment variables (contains secrets)
+.env
+.env.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+test-results/
+>>>>>>> b0e599a (Initial commit: Amazon PPC optimization platform with conservative bulksheet generator, bleeder detection, and API integration)

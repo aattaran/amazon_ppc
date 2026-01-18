@@ -1,0 +1,72 @@
+[
+  {
+    "id": "337423570829331",
+    "name": "berberine exact new",
+    "budget": 9,
+    "state": "enabled",
+    "spend": 56.49,
+    "sales": 52.98,
+    "orders": 2,
+    "acos": 1.0663,
+    "roas": 0.94,
+    "impressions": 1656,
+    "clicks": 15,
+    "cpc": 3.77
+  },
+  {
+    "id": "347066231335202",
+    "name": "berberberine h phrase",
+    "budget": 8,
+    "state": "enabled",
+    "spend": 21.42,
+    "sales": 26.49,
+    "orders": 1,
+    "acos": 0.8086,
+    "roas": 1.24,
+    "impressions": 2624,
+    "clicks": 8,
+    "cpc": 2.68
+  },
+  {
+    "id": "297136534969837",
+    "name": "berberine auto new 2",
+    "budget": 6,
+    "state": "enabled",
+    "spend": 14.23,
+    "sales": 0,
+    "orders": 0,
+    "acos": 0,
+    "roas": 0,
+    "impressions": 2178,
+    "clicks": 6,
+    "cpc": 2.37
+  },
+  {
+    "id": "521751871226682",
+    "name": "berberine asin new11",
+    "budget": 7,
+    "state": "enabled",
+    "spend": 1.96,
+    "sales": 0,
+    "orders": 0,
+    "acos": 0,
+    "roas": 0,
+    "impressions": 169,
+    "clicks": 1,
+    "cpc": 1.96
+  },
+  {
+    "id": "561057249153775",
+    "name": "berberine broad new",
+    "budget": 7,
+    "state": "enabled",
+    "spend": 0,
+    "sales": 0,
+    "orders": 0,
+    "acos": 0,
+    "roas": 0,
+    "impressions": 4,
+    "clicks": 0,
+    "cpc": 0
+  }
+]
