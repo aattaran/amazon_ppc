@@ -1,0 +1,28 @@
+﻿
+🔄 Getting access token...
+✅ Access token obtained
+
+🔄 Fetching campaigns for profile: 1130011681132849
+   (US Seller - Luxe Allur)
+   Endpoint: POST https://advertising-api.amazon.com/sp/campaigns/list
+
+node : ❌ ERROR FETCHING CAMPAIGNS
+At line:1 char:1
++ node fetch-campaigns.js 2>&1 | Out-File -FilePath 
+test-output.txt -En ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (❌ ERROR FETC 
+   HING CAMPAIGNS:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Status: 415
+Status Text: Unsupported Media Type
+
+Full Error Response:
+{
+  "message": "Server cannot provide a response with 
+Content-Type `application/json,text/plain,*/*`. 
+Content-Type available: 
+`application/vnd.spcampaign.v3+json`"
+}
