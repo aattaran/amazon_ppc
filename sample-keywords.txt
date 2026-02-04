@@ -1,0 +1,17 @@
+# Sample keywords for Titan testing
+# One keyword per line
+# Lines starting with # are ignored
+
+# Berberine/DHB Keywords
+dihydroberberine supplement
+dhb supplement
+berberine hcl
+berberine capsules
+berberine for blood sugar
+best berberine supplement
+organic berberine
+pure berberine
+berberine 500mg
+dhb 200mg
+
+# Add your own keywords below:

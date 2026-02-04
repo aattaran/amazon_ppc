@@ -37,7 +37,7 @@ function setupPPCSheets() {
     setupNegativeKeywordsTab(ss);
 
     Logger.log('✅ Setup complete!');
-    SpreadsheetApp.getUi().alert('✅ PPC Sheets configured successfully!');
+    // Alert removed to prevent hanging - check Execution log for confirmation
 }
 
 /**
@@ -45,11 +45,11 @@ function setupPPCSheets() {
  */
 function createTabsIfNeeded(ss) {
     const requiredTabs = [
-        'PPC Campaigns',
-        'Ad Groups',
-        'Keywords',
-        'Targeting Clauses',
-        'Negative Keywords'
+        '1. Campaigns',
+        '2. Ad Groups',
+        '3. Keywords',
+        '4. Targeting Clauses',
+        '5. Negative Keywords'
     ];
 
     const existingSheets = ss.getSheets().map(s => s.getName());
@@ -68,11 +68,24 @@ function createTabsIfNeeded(ss) {
 function setupCampaignsTab(ss) {
     Logger.log('Setting up PPC Campaigns tab...');
 
-    const sheet = ss.getSheetByName('PPC Campaigns');
+    const sheet = ss.getSheetByName('1. Campaigns');
     if (!sheet) {
-        Logger.log('⚠️ PPC Campaigns tab not found, skipping');
+        Logger.log('⚠️ 1. Campaigns tab not found, skipping');
         return;
     }
+
+    // Add title and instructions
+    sheet.getRange('A1:AA1').merge();
+    sheet.getRange('A1').setValue('1️⃣ CAMPAIGNS - READ ONLY');
+    sheet.getRange('A1').setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+    sheet.getRange('A1').setBackground('#4285F4').setFontColor('#FFFFFF');
+
+    sheet.getRange('A3:AA5').merge();
+    const instructions = 'ℹ️ INFO: This is a reference tab showing all your campaigns.\n\n' +
+        'Column Z (Test Group): A = Keywords Only, B = Keywords + Audiences, CONTROL = Not in test\n' +
+        'To change test groups: Tag campaign names in Amazon with [KW-ONLY] or [KW+AUD], then re-fetch data.';
+    sheet.getRange('A3').setValue(instructions);
+    sheet.getRange('A3').setBackground('#E8F5E9').setFontSize(10).setVerticalAlignment('top').setWrap(true);
 
     // Add new headers in row 10
     sheet.getRange('Z10').setValue('Test Group');
@@ -92,11 +105,23 @@ function setupCampaignsTab(ss) {
 function setupAdGroupsTab(ss) {
     Logger.log('Setting up Ad Groups tab...');
 
-    const sheet = ss.getSheetByName('Ad Groups');
+    const sheet = ss.getSheetByName('2. Ad Groups');
     if (!sheet) return;
 
-    // Clear existing content
-    sheet.clear();
+    // Clear only header rows (preserve data in rows 11+)
+    sheet.getRange('A1:Z10').clear();
+
+    // Add title and instructions
+    sheet.getRange('A1:L1').merge();
+    sheet.getRange('A1').setValue('2️⃣ AD GROUPS - READ ONLY');
+    sheet.getRange('A1').setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+    sheet.getRange('A1').setBackground('#4285F4').setFontColor('#FFFFFF');
+
+    sheet.getRange('A3:L5').merge();
+    const instructions = 'ℹ️ INFO: This is a reference tab showing all your ad groups.\n\n' +
+        'Use this to understand campaign structure. All approvals happen in the KEYWORDS tab.';
+    sheet.getRange('A3').setValue(instructions);
+    sheet.getRange('A3').setBackground('#E8F5E9').setFontSize(10).setVerticalAlignment('top').setWrap(true);
 
     // Add headers in row 10
     const headers = [
@@ -116,10 +141,6 @@ function setupAdGroupsTab(ss) {
 
     // Freeze rows 1-10
     sheet.setFrozenRows(10);
-
-    // Add dashboard placeholder
-    sheet.getRange('A1').setValue('📊 AD GROUPS DASHBOARD');
-    sheet.getRange('A1').setFontSize(18).setFontWeight('bold');
 }
 
 /**
@@ -128,11 +149,11 @@ function setupAdGroupsTab(ss) {
 function setupKeywordsTab(ss) {
     Logger.log('Setting up Keywords tab...');
 
-    const sheet = ss.getSheetByName('Keywords');
+    const sheet = ss.getSheetByName('3. Keywords');
     if (!sheet) return;
 
-    // Clear existing content
-    sheet.clear();
+    // Clear only header rows (preserve data in rows 11+)
+    sheet.getRange('A1:Z10').clear();
 
     // Add dashboard (rows 1-9)
     setupKeywordsDashboard(sheet);
@@ -178,28 +199,25 @@ function setupKeywordsTab(ss) {
 function setupKeywordsDashboard(sheet) {
     // Row 1: Title
     sheet.getRange('A1:U1').merge();
-    sheet.getRange('A1').setValue('📊 PPC KEYWORDS DASHBOARD');
+    sheet.getRange('A1').setValue('3️⃣ KEYWORDS - APPROVAL WORKFLOW');
     sheet.getRange('A1').setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+    sheet.getRange('A1').setBackground('#4285F4').setFontColor('#FFFFFF');
 
-    // Row 3: Stats placeholders
-    sheet.getRange('A3').setValue('📊 SET A (Keywords Only)');
-    sheet.getRange('A3').setFontWeight('bold');
-
-    sheet.getRange('I3').setValue('📊 SET B (Keywords + Audiences)');
-    sheet.getRange('I3').setFontWeight('bold');
-
-    // Rows 5-7: Instructions
-    sheet.getRange('A5:U7').merge();
+    // Rows 3-8: Step-by-step instructions
+    sheet.getRange('A3:U8').merge();
     const instructions =
-        'HOW TO USE:\n' +
-        '1. Review keywords with CRITICAL priority (red) first\n' +
-        '2. Click "Approval" dropdown and select APPROVE, REJECT, or HOLD\n' +
-        '3. Row highlights green (approved), red (rejected), or yellow (hold)\n' +
-        '4. When ready, use PPC Optimizer menu → Generate Bulk File\n' +
-        '5. Upload Excel file to Amazon Ads Console';
+        '🎯 WHAT TO DO:\n\n' +
+        '1️⃣ FETCH DATA: Run "node fetch-ppc-data.js" in terminal (or use menu: PPC Optimizer → Data Operations → Fetch PPC Data)\n' +
+        '2️⃣ REVIEW: Focus on CRITICAL (red) and HIGH (orange) priority keywords first (column S)\n' +
+        '3️⃣ DECIDE: Click dropdown in "Approval" column (T) and select:\n' +
+        '     • APPROVE = Include in bulk file (row turns green)\n' +
+        '     • REJECT = Skip this keyword (row turns red)\n' +
+        '     • HOLD = Review later (row turns yellow)\n' +
+        '4️⃣ EXPORT: When done, run "node generate-bulk-csv.js" in terminal\n' +
+        '5️⃣ UPLOAD: Upload generated Excel file to Amazon Ads Console → Bulk Operations';
 
-    sheet.getRange('A5').setValue(instructions);
-    sheet.getRange('A5').setBackground('#F3F3F3').setFontSize(10);
+    sheet.getRange('A3').setValue(instructions);
+    sheet.getRange('A3').setBackground('#FFF9C4').setFontSize(10).setVerticalAlignment('top').setWrap(true);
 }
 
 /**
@@ -345,10 +363,27 @@ function addApprovalRowHighlighting(sheet) {
 function setupTargetingClausesTab(ss) {
     Logger.log('Setting up Targeting Clauses tab...');
 
-    const sheet = ss.getSheetByName('Targeting Clauses');
+    const sheet = ss.getSheetByName('4. Targeting Clauses');
     if (!sheet) return;
 
-    sheet.clear();
+    // Clear only header rows (preserve data)
+    sheet.getRange('A1:Z10').clear();
+
+    // Add title and instructions
+    sheet.getRange('A1:T1').merge();
+    sheet.getRange('A1').setValue('4️⃣ TARGETING CLAUSES - READ ONLY');
+    sheet.getRange('A1').setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+    sheet.getRange('A1').setBackground('#4285F4').setFontColor('#FFFFFF');
+
+    sheet.getRange('A3:T7').merge();
+    const instructions = '🎯 WHAT TO DO (Phase 1B - Optional):\n\n' +
+        '1️⃣ This tab will be populated when you fetch audience targeting data\n' +
+        '2️⃣ Review CVR Lift column to see which audiences perform better\n' +
+        '3️⃣ Use "Approval" dropdown (column S) to approve/reject bid changes\n' +
+        '4️⃣ Export approved changes with bulk file generator\n\n' +
+        '💡 TIP: Focus on Set B campaigns ([KW+AUD]) to test audience targeting effectiveness.';
+    sheet.getRange('A3').setValue(instructions);
+    sheet.getRange('A3').setBackground('#FFF9C4').setFontSize(10).setVerticalAlignment('top').setWrap(true);
 
     const headers = [
         'Targeting Clause ID', 'Expression Type', 'Expression Value', 'Audience Name',
@@ -367,9 +402,6 @@ function setupTargetingClausesTab(ss) {
 
     sheet.setFrozenRows(10);
 
-    sheet.getRange('A1').setValue('📊 AUDIENCE TARGETING CLAUSES');
-    sheet.getRange('A1').setFontSize(18).setFontWeight('bold');
-
     // Add approval dropdown
     const approvalRange = sheet.getRange(11, 19, 1000, 1); // Column S
     const rule = SpreadsheetApp.newDataValidation()
@@ -385,10 +417,23 @@ function setupTargetingClausesTab(ss) {
 function setupNegativeKeywordsTab(ss) {
     Logger.log('Setting up Negative Keywords tab...');
 
-    const sheet = ss.getSheetByName('Negative Keywords');
+    const sheet = ss.getSheetByName('5. Negative Keywords');
     if (!sheet) return;
 
-    sheet.clear();
+    // Clear only header rows (preserve data)
+    sheet.getRange('A1:Z10').clear();
+
+    // Add title and instructions
+    sheet.getRange('A1:H1').merge();
+    sheet.getRange('A1').setValue('5️⃣ NEGATIVE KEYWORDS - READ ONLY');
+    sheet.getRange('A1').setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
+    sheet.getRange('A1').setBackground('#4285F4').setFontColor('#FFFFFF');
+
+    sheet.getRange('A3:H5').merge();
+    const instructions = 'ℹ️ INFO: This is a reference tab showing negative keywords preventing unwanted searches.\n\n' +
+        'To add negative keywords: Use Amazon Ads Console → Campaign Settings → Negative Keywords.';
+    sheet.getRange('A3').setValue(instructions);
+    sheet.getRange('A3').setBackground('#E8F5E9').setFontSize(10).setVerticalAlignment('top').setWrap(true);
 
     const headers = [
         'Negative Keyword Text', 'Negative Keyword ID', 'Match Type',
@@ -404,9 +449,6 @@ function setupNegativeKeywordsTab(ss) {
     headerRange.setFontColor('#FFFFFF');
 
     sheet.setFrozenRows(10);
-
-    sheet.getRange('A1').setValue('📊 NEGATIVE KEYWORDS');
-    sheet.getRange('A1').setFontSize(18).setFontWeight('bold');
 }
 
 /**
@@ -415,7 +457,18 @@ function setupNegativeKeywordsTab(ss) {
 function onOpen() {
     const ui = SpreadsheetApp.getUi();
     ui.createMenu('🎯 PPC Optimizer')
-        .addItem('🔄 Refresh Setup', 'setupPPCSheets')
+        .addSubMenu(ui.createMenu('⚙️ Setup')
+            .addItem('📋 Create All Tabs', 'createTabsOnly')
+            .addItem('📊 Setup Headers Only', 'setupHeadersOnly')
+            .addItem('🎨 Apply Formatting', 'applyFormattingOnly')
+            .addSeparator()
+            .addItem('⚠️ Full Setup (Initial Only)', 'setupPPCSheets'))
+        .addSeparator()
+        .addSubMenu(ui.createMenu('🔄 Data Operations')
+            .addItem('📥 Fetch PPC Data', 'showFetchInstructions')
+            .addItem('� Show ENABLED Keywords Only', 'filterToEnabledOnly')
+            .addItem('�🗑️ Clear All Data', 'clearAllDataWithConfirm')
+            .addItem('🗑️ Clear Keywords Only', 'clearKeywordsOnly'))
         .addSeparator()
         .addItem('📊 Generate Bulk File', 'generateBulkFile')
         .addToUi();
@@ -429,4 +482,167 @@ function generateBulkFile() {
         'Bulk file generation is not yet implemented.\n' +
         'Please run: node generate-bulk-csv.js'
     );
+}
+
+/**
+ * Filter Keywords sheet to show only ENABLED keywords
+ */
+function filterToEnabledOnly() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('3. Keywords');
+
+    if (!sheet) {
+        SpreadsheetApp.getUi().alert('❌ Keywords sheet not found!');
+        return;
+    }
+
+    // Get the data range (assuming headers are in row 10)
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+
+    if (lastRow <= 10) {
+        SpreadsheetApp.getUi().alert('⚠️ No data found in Keywords sheet');
+        return;
+    }
+
+    // Remove existing filter if any
+    const existingFilter = sheet.getFilter();
+    if (existingFilter) {
+        existingFilter.remove();
+    }
+
+    // Create filter on entire data range
+    const filterRange = sheet.getRange(10, 1, lastRow - 9, lastCol);
+    const filter = filterRange.createFilter();
+
+    // Find the "State" column (column H is index 8)
+    const stateColumnIndex = 8;
+
+    // Apply filter to show only ENABLED
+    const criteria = SpreadsheetApp.newFilterCriteria()
+        .setHiddenValues(['ARCHIVED', 'PAUSED'])
+        .build();
+
+    filter.setColumnFilterCriteria(stateColumnIndex, criteria);
+
+    SpreadsheetApp.getUi().alert('✅ Filter applied! Now showing ENABLED keywords only.\n\nTo see all keywords again, click Data → Remove filter.');
+}
+
+/**
+ * Create tabs only (doesn't touch data)
+ */
+function createTabsOnly() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    createTabsIfNeeded(ss);
+    SpreadsheetApp.getUi().alert('✅ Tabs created successfully!');
+}
+
+/**
+ * Setup headers only (preserves data in rows 11+)
+ */
+function setupHeadersOnly() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    Logger.log('Setting up headers (preserving data)...');
+    setupCampaignsTab(ss);
+    setupAdGroupsTab(ss);
+    setupKeywordsTab(ss);
+    setupTargetingClausesTab(ss);
+    setupNegativeKeywordsTab(ss);
+
+    SpreadsheetApp.getUi().alert('✅ Headers refreshed! Your data is safe.');
+}
+
+/**
+ * Apply formatting only (colors, dropdowns, etc.)
+ */
+function applyFormattingOnly() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Keywords');
+
+    if (!sheet) {
+        SpreadsheetApp.getUi().alert('❌ Keywords tab not found!');
+        return;
+    }
+
+    addPriorityFormatting(sheet);
+    addActionFormatting(sheet);
+    addApprovalDropdown(sheet);
+    addApprovalRowHighlighting(sheet);
+
+    SpreadsheetApp.getUi().alert('✅ Formatting applied!');
+}
+
+/**
+ * Show instructions for fetching PPC data
+ */
+function showFetchInstructions() {
+    const ui = SpreadsheetApp.getUi();
+    const html = HtmlService.createHtmlOutput(
+        '<h2>Fetch PPC Data from Amazon</h2>' +
+        '<p><strong>Run this command in your terminal:</strong></p>' +
+        '<pre style="background:#f0f0f0;padding:10px;border-radius:5px;">cd C:\\Users\\AATTARAN\\workspace\\amazon-ppc-platform<br>node fetch-ppc-data.js</pre>' +
+        '<p><strong>This will:</strong></p>' +
+        '<ul>' +
+        '<li>Fetch campaigns, ad groups, and keywords from Amazon</li>' +
+        '<li>Sync all data to this Google Sheet</li>' +
+        '<li>Take about 3-5 minutes</li>' +
+        '</ul>' +
+        '<p><em>Note: This must be run from your computer terminal, not from Google Sheets.</em></p>'
+    ).setWidth(500).setHeight(300);
+
+    ui.showModalDialog(html, '📥 Fetch PPC Data Instructions');
+}
+
+/**
+ * Clear all data with confirmation
+ */
+function clearAllDataWithConfirm() {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+        '⚠️ WARNING',
+        'This will delete ALL data from all tabs (rows 11+).\n\nAre you sure?',
+        ui.ButtonSet.YES_NO
+    );
+
+    if (response === ui.Button.YES) {
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+        ['PPC Campaigns', 'Ad Groups', 'Keywords', 'Targeting Clauses', 'Negative Keywords'].forEach(tabName => {
+            const sheet = ss.getSheetByName(tabName);
+            if (sheet) {
+                const lastRow = sheet.getLastRow();
+                if (lastRow >= 11) {
+                    sheet.getRange(`A11:Z${lastRow}`).clear();
+                }
+            }
+        });
+
+        ui.alert('✅ All data cleared. Headers preserved.');
+    }
+}
+
+/**
+ * Clear keywords only
+ */
+function clearKeywordsOnly() {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+        '⚠️ Clear Keywords',
+        'This will delete all keyword data (rows 11+).\n\nContinue?',
+        ui.ButtonSet.YES_NO
+    );
+
+    if (response === ui.Button.YES) {
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        const sheet = ss.getSheetByName('Keywords');
+
+        if (sheet) {
+            const lastRow = sheet.getLastRow();
+            if (lastRow >= 11) {
+                sheet.getRange(`A11:Z${lastRow}`).clear();
+            }
+            ui.alert('✅ Keywords cleared.');
+        }
+    }
 }

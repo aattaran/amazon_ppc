@@ -1,0 +1,425 @@
+#!/usr/bin/env node
+
+/**
+ * PPC Data Fetcher - Phase 1A
+ * 
+ * Fetches campaigns, ad groups, and keywords from Amazon Ads API
+ * and syncs to Google Sheets with test group detection
+ * 
+ * Usage: node fetch-ppc-data.js
+ */
+
+require('dotenv').config();
+const fetch = require('node-fetch');
+const { google } = require('googleapis');
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const config = {
+    amazon: {
+        clientId: process.env.AMAZON_CLIENT_ID,
+        clientSecret: process.env.AMAZON_CLIENT_SECRET,
+        refreshToken: process.env.AMAZON_REFRESH_TOKEN,
+        profileId: process.env.AMAZON_PROFILE_ID,
+        tokenUrl: 'https://api.amazon.com/auth/o2/token',
+        apiUrl: 'https://advertising-api.amazon.com'
+    },
+    sheets: {
+        serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        privateKey: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        spreadsheetId: process.env.GOOGLE_SHEETS_ID
+    }
+};
+
+// ============================================================================
+// AMAZON ADS API CLIENT
+// ============================================================================
+
+class AmazonAdsClient {
+    constructor(config) {
+        this.config = config;
+        this.accessToken = null;
+    }
+
+    /**
+     * Authenticate and get access token
+     */
+    async authenticate() {
+        console.log('🔐 Authenticating with Amazon Ads API...');
+
+        const params = new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: this.config.refreshToken,
+            client_id: this.config.clientId,
+            client_secret: this.config.clientSecret
+        });
+
+        const response = await fetch(this.config.tokenUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Authentication failed: ${error}`);
+        }
+
+        const data = await response.json();
+        this.accessToken = data.access_token;
+
+        console.log('   ✅ Authenticated successfully');
+        console.log(`   📋 Profile ID: ${this.config.profileId}\n`);
+    }
+
+    /**
+     * Generic paginated fetch with NextToken
+     */
+    async fetchPaginated(endpoint, acceptHeader, dataKey, stateFilter = null) {
+        const allData = [];
+        let nextToken = null;
+        let pageCount = 0;
+
+        do {
+            pageCount++;
+
+            const requestBody = {
+                nextToken: nextToken,
+                maxResults: 100
+            };
+
+            // Add state filter if provided (only fetch ENABLED entities)
+            if (stateFilter) {
+                requestBody.stateFilter = { include: [stateFilter] };
+            }
+
+            // Debug: Show first request body
+            if (pageCount === 1) {
+                console.log(`   🔍 Request body:`, JSON.stringify(requestBody, null, 2));
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`,
+                    'Amazon-Advertising-API-ClientId': this.config.clientId,
+                    'Amazon-Advertising-API-Scope': this.config.profileId,
+                    'Accept': acceptHeader,
+                    'Content-Type': acceptHeader  // Use same as Accept header
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`API request failed: ${error}`);
+            }
+
+            const data = await response.json();
+            const items = data[dataKey] || [];
+
+            allData.push(...items);
+            nextToken = data.nextToken || null;
+
+            console.log(`   Page ${pageCount}: ${items.length} items fetched`);
+
+            // Rate limiting: wait 1 second between requests
+            if (nextToken) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+        } while (nextToken !== null);
+
+        return allData;
+    }
+
+    /**
+     * Fetch all campaigns
+     */
+    async fetchCampaigns() {
+        console.log('📊 Fetching campaigns (ENABLED only)...');
+        const campaigns = await this.fetchPaginated(
+            `${this.config.apiUrl}/sp/campaigns/list`,
+            'application/vnd.spCampaign.v3+json',
+            'campaigns',
+            'ENABLED'  // Only fetch ENABLED campaigns
+        );
+        console.log(`   ✅ Total: ${campaigns.length} ENABLED campaigns\n`);
+        return campaigns;
+    }
+
+    /**
+     * Fetch all ad groups
+     */
+    async fetchAdGroups() {
+        console.log('📊 Fetching ad groups (ENABLED only)...');
+        const adGroups = await this.fetchPaginated(
+            `${this.config.apiUrl}/sp/adGroups/list`,
+            'application/vnd.spAdGroup.v3+json',
+            'adGroups',
+            'ENABLED'  // Only fetch ENABLED ad groups
+        );
+        console.log(`   ✅ Total: ${adGroups.length} ENABLED ad groups\n`);
+        return adGroups;
+    }
+
+    /**
+     * Fetch all keywords
+     */
+    async fetchKeywords() {
+        console.log('📊 Fetching keywords (ENABLED only)...');
+        const keywords = await this.fetchPaginated(
+            `${this.config.apiUrl}/sp/keywords/list`,
+            'application/vnd.spKeyword.v3+json',
+            'keywords',
+            'ENABLED'  // Only fetch ENABLED keywords
+        );
+        console.log(`   ✅ Total: ${keywords.length} ENABLED keywords\n`);
+        return keywords;
+    }
+}
+
+// ============================================================================
+// GOOGLE SHEETS CLIENT
+// ============================================================================
+
+class GoogleSheetsClient {
+    constructor(config) {
+        this.config = config;
+        this.sheets = null;
+    }
+
+    /**
+     * Initialize Google Sheets API
+     */
+    async initialize() {
+        console.log('📊 Initializing Google Sheets API...');
+
+        const auth = new google.auth.JWT({
+            email: this.config.serviceAccountEmail,
+            key: this.config.privateKey,
+            scopes: ['https://www.googleapis.com/auth/spreadsheets']
+        });
+
+        this.sheets = google.sheets({ version: 'v4', auth });
+        console.log('   ✅ Google Sheets API ready\n');
+    }
+
+    /**
+     * Sync campaigns to "PPC Campaigns" sheet
+     */
+    async syncCampaigns(campaigns, campaignTestGroups) {
+        console.log('📝 Syncing campaigns to Google Sheets...');
+
+        const values = campaigns.map(c => {
+            const testGroup = campaignTestGroups.get(c.campaignId) || 'CONTROL';
+            const optimizationType = testGroup === 'A' ? 'KW-ONLY' : testGroup === 'B' ? 'KW+AUD' : '';
+
+            return [
+                c.name || '',                    // A: Campaign Name
+                c.campaignId || '',              // B: Campaign ID
+                c.state || '',                   // C: State
+                c.budget?.budget || '',          // D: Daily Budget
+                c.startDate || '',               // E: Start Date
+                c.endDate || '',                 // F: End Date
+                c.targetingType || '',           // G: Targeting Type
+                '', '', '', '', '', '', '',      // H-N: Metrics (Phase 2)
+                '', '', '', '', '', '', '',      // O-U: More metrics
+                '', '', '',                      // V-X: Additional fields
+                '',                              // Y: Last Updated
+                testGroup,                       // Z: Test Group
+                optimizationType                 // AA: Optimization Type
+            ];
+        });
+
+        await this.sheets.spreadsheets.values.update({
+            spreadsheetId: this.config.spreadsheetId,
+            range: '1. Campaigns!A11',
+            valueInputOption: 'RAW',
+            resource: { values }
+        });
+
+        console.log(`   ✅ ${campaigns.length} campaigns synced\n`);
+    }
+
+    /**
+     * Sync ad groups to "Ad Groups" sheet
+     */
+    async syncAdGroups(adGroups, campaignMap) {
+        console.log('📝 Syncing ad groups to Google Sheets...');
+
+        const values = adGroups.map(ag => {
+            const campaign = campaignMap.get(ag.campaignId);
+
+            return [
+                ag.name || '',                   // A: Ad Group Name
+                ag.adGroupId || '',              // B: Ad Group ID
+                ag.campaignId || '',             // C: Campaign ID
+                campaign?.name || '',            // D: Campaign Name
+                ag.state || '',                  // E: State
+                ag.defaultBid || '',             // F: Default Bid
+                '', '', '', '',                  // G-J: Metrics (Phase 2)
+                '', ''                           // K-L: ACOS, CVR
+            ];
+        });
+
+        await this.sheets.spreadsheets.values.update({
+            spreadsheetId: this.config.spreadsheetId,
+            range: '2. Ad Groups!A11',
+            valueInputOption: 'RAW',
+            resource: { values }
+        });
+
+        console.log(`   ✅ ${adGroups.length} ad groups synced\n`);
+    }
+
+    /**
+     * Sync keywords to "Keywords" sheet
+     */
+    async syncKeywords(keywords, campaignMap, adGroupMap, campaignTestGroups) {
+        console.log('📝 Syncing keywords to Google Sheets...');
+
+        const values = keywords.map(kw => {
+            const campaign = campaignMap.get(kw.campaignId);
+            const adGroup = adGroupMap.get(kw.adGroupId);
+            const testGroup = campaignTestGroups.get(kw.campaignId) || 'CONTROL';
+
+            return [
+                kw.keywordText || '',            // A: Keyword Text
+                kw.keywordId || '',              // B: Keyword ID
+                kw.matchType || '',              // C: Match Type
+                kw.adGroupId || '',              // D: Ad Group ID
+                kw.campaignId || '',             // E: Campaign ID
+                campaign?.name || '',            // F: Campaign Name
+                testGroup,                       // G: Test Group
+                kw.state || '',                  // H: State
+                kw.bid || '',                    // I: Current Bid
+                '', '', '', '', '', '',          // J-O: Metrics (Phase 2)
+                '',                              // P: VPC
+                '',                              // Q: Recommended Bid
+                '',                              // R: Action
+                '',                              // S: Priority
+                '',                              // T: Approval (user fills)
+                new Date().toISOString()         // U: Last Updated
+            ];
+        });
+
+        await this.sheets.spreadsheets.values.update({
+            spreadsheetId: this.config.spreadsheetId,
+            range: '3. Keywords!A11',
+            valueInputOption: 'RAW',
+            resource: { values }
+        });
+
+        console.log(`   ✅ ${keywords.length} keywords synced\n`);
+    }
+}
+
+// ============================================================================
+// TEST GROUP DETECTION
+// ============================================================================
+
+/**
+ * Detect test group from campaign name
+ */
+function detectTestGroup(campaignName) {
+    if (!campaignName) return 'CONTROL';
+
+    if (campaignName.includes('[KW-ONLY]')) return 'A';
+    if (campaignName.includes('[KW+AUD]')) return 'B';
+
+    return 'CONTROL';
+}
+
+/**
+ * Create campaign test group map
+ */
+function createTestGroupMap(campaigns) {
+    const testGroups = new Map();
+
+    campaigns.forEach(campaign => {
+        const testGroup = detectTestGroup(campaign.name);
+        testGroups.set(campaign.campaignId, testGroup);
+    });
+
+    return testGroups;
+}
+
+// ============================================================================
+// MAIN EXECUTION
+// ============================================================================
+
+async function main() {
+    const startTime = Date.now();
+
+    console.log('🚀 Starting PPC data fetch...\n');
+
+    try {
+        // Step 1: Authenticate with Amazon Ads API
+        const amazonClient = new AmazonAdsClient(config.amazon);
+        await amazonClient.authenticate();
+
+        // Step 2: Fetch data from Amazon
+        const campaigns = await amazonClient.fetchCampaigns();
+        const adGroups = await amazonClient.fetchAdGroups();
+        const keywords = await amazonClient.fetchKeywords();
+
+        // Step 3: Detect test groups
+        console.log('🔍 Detecting test groups...');
+        const campaignTestGroups = createTestGroupMap(campaigns);
+        const setA = Array.from(campaignTestGroups.values()).filter(g => g === 'A').length;
+        const setB = Array.from(campaignTestGroups.values()).filter(g => g === 'B').length;
+        const control = Array.from(campaignTestGroups.values()).filter(g => g === 'CONTROL').length;
+        console.log(`   Set A (KW-ONLY): ${setA} campaigns`);
+        console.log(`   Set B (KW+AUD): ${setB} campaigns`);
+        console.log(`   Control: ${control} campaigns\n`);
+
+        // Step 4: Create lookup maps
+        const campaignMap = new Map(campaigns.map(c => [c.campaignId, c]));
+        const adGroupMap = new Map(adGroups.map(ag => [ag.adGroupId, ag]));
+
+        // Step 5: Sync to Google Sheets
+        const sheetsClient = new GoogleSheetsClient(config.sheets);
+        await sheetsClient.initialize();
+
+        await sheetsClient.syncCampaigns(campaigns, campaignTestGroups);
+        await sheetsClient.syncAdGroups(adGroups, campaignMap);
+        await sheetsClient.syncKeywords(keywords, campaignMap, adGroupMap, campaignTestGroups);
+
+        // Step 6: Summary
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+
+        console.log('🎉 Complete! Data synced successfully.\n');
+        console.log('📊 Summary:');
+        console.log(`   Campaigns: ${campaigns.length}`);
+        console.log(`   Ad Groups: ${adGroups.length}`);
+        console.log(`   Keywords: ${keywords.length}`);
+        console.log(`   Set A campaigns: ${setA}`);
+        console.log(`   Set B campaigns: ${setB}`);
+        console.log(`   Execution time: ${duration}s\n`);
+
+    } catch (error) {
+        console.error('\n❌ Error:', error.message);
+        console.error('\n📋 Error Details:');
+        console.error('   Name:', error.name);
+        console.error('   Message:', error.message);
+        if (error.stack) {
+            console.error('\n📚 Stack Trace:');
+            console.error(error.stack);
+        }
+        if (error.response) {
+            console.error('\n🌐 Response Data:');
+            console.error(JSON.stringify(error.response, null, 2));
+        }
+        process.exit(1);
+    }
+}
+
+// Run if called directly
+if (require.main === module) {
+    main();
+}
+
+module.exports = { AmazonAdsClient, GoogleSheetsClient, detectTestGroup };

@@ -1,238 +1,254 @@
-const fs = require('fs');
-const csv = require('csv-parser');
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-
 /**
- * Amazon Brand Analytics - Competitor Keyword Analyzer
- * 
- * Analyzes Search Terms Report to find:
- * 1. Keywords competitors rank for
- * 2. Keywords you're missing
- * 3. Your ranking positions
- * 4. Keyword opportunities for PPC
+ * Brand Analytics Parser
+ * Parse Amazon Brand Analytics Search Term data to find conquest opportunities
  */
 
-// Configuration
-const YOUR_ASINS = [
-    // Add your product ASINs here
-    'B0EXAMPLE1',
-    'B0EXAMPLE2'
+require('dotenv').config();
+const KeywordEnricher = require('./src/titan/services/keyword-enricher');
+const OpportunityScorer = require('./src/titan/scoring/opportunity-scorer');
+const TierClassifier = require('./src/titan/scoring/tier-classifier');
+const KeywordDatabase = require('./src/titan/database/keywords-db');
+const SyncCoordinator = require('./src/titan/sync/sync-coordinator');
+
+// Your ASIN
+const YOUR_ASIN = 'B0DTDZFMY7';
+
+// Real Brand Analytics data from Amazon
+const BRAND_ANALYTICS_DATA = [
+    {
+        searchTerm: 'dihydroberberine',
+        searchFrequencyRank: 73890,
+        topASINs: [
+            { asin: 'B0D4RMJ8NB', brand: 'Nutricost', clickShare: 17.33, conversionShare: 16.41 },
+            { asin: 'B0CNS2PBHX', brand: 'Double Wood Supplements', clickShare: 16.44, conversionShare: 14.44 },
+            { asin: 'B0DJ7XMLXQ', brand: 'HealMeal', clickShare: 9.38, conversionShare: 4.04 }
+        ]
+    },
+    {
+        searchTerm: 'dihydroberberine supplement',
+        searchFrequencyRank: 316086,
+        topASINs: [
+            { asin: 'B0CNS2PBHX', brand: 'Double Wood Supplements', clickShare: 13.53, conversionShare: 10.49 },
+            { asin: 'B0FGNRSYCF', brand: 'Unknown', clickShare: 10.19, conversionShare: 10.49 },
+            { asin: 'B0DJ7XMLXQ', brand: 'HealMeal', clickShare: 9.25, conversionShare: 5.57 }
+        ]
+    },
+    {
+        searchTerm: 'dihydroberberine 200mg',
+        searchFrequencyRank: 704965,
+        topASINs: [
+            { asin: 'B0D4RMJ8NB', brand: 'Nutricost', clickShare: 15.44, conversionShare: 25 },
+            { asin: 'B0CWC6F56X', brand: "NATURE'S FUSIONS", clickShare: 9.42, conversionShare: 8.33 },
+            { asin: 'B0CNS2PBHX', brand: 'Double Wood Supplements', clickShare: 8.85, conversionShare: 3.33 }
+        ]
+    },
+    {
+        searchTerm: 'dihydroberberine 500mg',
+        searchFrequencyRank: 1448955,
+        topASINs: [
+            { asin: 'B0DDMM94BF', brand: 'NATUREBELL', clickShare: 31.27, conversionShare: 31.34 },
+            { asin: 'B0DCZPTMLX', brand: 'VINATURA', clickShare: 12.36, conversionShare: 11.94 },
+            { asin: 'B0FGNRSYCF', brand: 'Unknown', clickShare: 10.42, conversionShare: 11.94 }
+        ]
+    }
 ];
 
-const COMPETITOR_ASINS = [
-    // Add known competitor ASINs here
-    'B08COMPETITOR1',
-    'B08COMPETITOR2'
-];
+async function analyzeBrandAnalytics() {
+    console.log('\n╔════════════════════════════════════════════╗');
+    console.log('║  📊 BRAND ANALYTICS CONQUEST ANALYZER     ║');
+    console.log('║  Real Amazon Search Term Data             ║');
+    console.log('╚════════════════════════════════════════════╝\n');
 
-async function analyzeBrandAnalytics(csvFilePath) {
-    console.log('\n📊 Analyzing Brand Analytics Search Terms Report...\n');
+    console.log(`🎯 Your ASIN: ${YOUR_ASIN}`);
+    console.log(`📊 Analyzing ${BRAND_ANALYTICS_DATA.length} search terms\n`);
 
-    const results = {
-        yourKeywords: [],
-        competitorKeywords: [],
-        missingKeywords: [],
-        opportunities: []
-    };
+    const db = new KeywordDatabase();
+    const scorer = new OpportunityScorer();
+    const classifier = new TierClassifier();
+    const enricher = new KeywordEnricher();
 
-    // Read CSV file
-    const rows = [];
+    const conquestOpportunities = [];
 
-    return new Promise((resolve, reject) => {
-        fs.createReadStream(csvFilePath)
-            .pipe(csv())
-            .on('data', (row) => rows.push(row))
-            .on('end', () => {
-                console.log(`✅ Loaded ${rows.length} search terms\n`);
+    try {
+        // Analyze each search term
+        for (const term of BRAND_ANALYTICS_DATA) {
+            console.log(`\n📊 "${term.searchTerm}"`);
+            console.log(`   Search Frequency Rank: #${term.searchFrequencyRank.toLocaleString()}`);
 
-                // Analyze each row
-                for (const row of rows) {
-                    const searchTerm = row['Search Term'] || row['search_term'];
-                    const searchFreqRank = parseInt(row['Search Frequency Rank'] || row['search_frequency_rank'] || '999999');
+            // Check if YOUR ASIN is in top 3
+            const yourPosition = term.topASINs.findIndex(a => a.asin === YOUR_ASIN);
+            const isInTop3 = yourPosition !== -1;
 
-                    // Get clicked ASINs
-                    const clickedASINs = [
-                        row['#1 Clicked ASIN'] || row['top_clicked_asin_1'],
-                        row['#2 Clicked ASIN'] || row['top_clicked_asin_2'],
-                        row['#3 Clicked ASIN'] || row['top_clicked_asin_3']
-                    ].filter(Boolean);
+            if (isInTop3) {
+                console.log(`   ✅ You're in top 3! Position #${yourPosition + 1}`);
+                console.log(`      Your click share: ${term.topASINs[yourPosition].clickShare}%`);
+                console.log(`      Your conversion share: ${term.topASINs[yourPosition].conversionShare}%`);
+            } else {
+                console.log(`   ❌ NOT in top 3 - CONQUEST OPPORTUNITY!`);
+            }
 
-                    // Get purchased ASINs
-                    const purchasedASINs = [
-                        row['#1 Purchased ASIN'] || row['top_purchased_asin_1'],
-                        row['#2 Purchased ASIN'] || row['top_purchased_asin_2'],
-                        row['#3 Purchased ASIN'] || row['top_purchased_asin_3']
-                    ].filter(Boolean);
+            console.log(`\n   Top 3 Competitors:`);
+            term.topASINs.forEach((asin, i) => {
+                const isYou = asin.asin === YOUR_ASIN;
+                const marker = isYou ? '👉 YOU' : '';
+                console.log(`      ${i + 1}. ${asin.brand} (${asin.asin}) ${marker}`);
+                console.log(`         Click: ${asin.clickShare}% | Conv: ${asin.conversionShare}%`);
+            });
 
-                    const allASINs = [...new Set([...clickedASINs, ...purchasedASINs])];
+            // Calculate opportunity metrics
+            const totalCompetitorClickShare = term.topASINs
+                .filter(a => a.asin !== YOUR_ASIN)
+                .reduce((sum, a) => sum + a.clickShare, 0);
 
-                    // Check if YOUR ASIN appears
-                    const yourPosition = findPosition(YOUR_ASINS, clickedASINs);
-                    const hasYourASIN = yourPosition !== -1;
+            const totalCompetitorConversionShare = term.topASINs
+                .filter(a => a.asin !== YOUR_ASIN)
+                .reduce((sum, a) => sum + a.conversionShare, 0);
 
-                    // Check if COMPETITOR ASIN appears
-                    const competitorPosition = findPosition(COMPETITOR_ASINS, clickedASINs);
-                    const hasCompetitorASIN = competitorPosition !== -1;
+            // Get competitor ASINs
+            const competitorASINs = term.topASINs
+                .filter(a => a.asin !== YOUR_ASIN)
+                .map(a => a.asin);
 
-                    // Categorize the keyword
-                    if (hasYourASIN && hasCompetitorASIN) {
-                        // You and competitor both rank
-                        results.yourKeywords.push({
-                            searchTerm,
-                            yourPosition: yourPosition + 1,
-                            competitorPosition: competitorPosition + 1,
-                            searchFreqRank,
-                            volume: estimateVolume(searchFreqRank),
-                            status: yourPosition < competitorPosition ? '✅ Winning' : '⚠️ Losing'
-                        });
-                    }
-                    else if (hasYourASIN && !hasCompetitorASIN) {
-                        // Only you rank
-                        results.yourKeywords.push({
-                            searchTerm,
-                            yourPosition: yourPosition + 1,
-                            competitorPosition: null,
-                            searchFreqRank,
-                            volume: estimateVolume(searchFreqRank),
-                            status: '🏆 Dominating'
-                        });
-                    }
-                    else if (!hasYourASIN && hasCompetitorASIN) {
-                        // Only competitor ranks - OPPORTUNITY!
-                        results.missingKeywords.push({
-                            searchTerm,
-                            competitorPosition: competitorPosition + 1,
-                            searchFreqRank,
-                            volume: estimateVolume(searchFreqRank),
-                            priority: searchFreqRank < 1000 ? '🔥 HIGH' : searchFreqRank < 10000 ? '⚡ MEDIUM' : '💡 LOW'
-                        });
-                    }
-                }
+            // Create keyword object
+            const keyword = {
+                keyword: term.searchTerm,
+                searchVolume: null, // Will enrich
+                competition: null,
+                estimatedCPC: null,
+                yourRank: isInTop3 ? yourPosition + 1 : null,
+                competitorRanks: [1, 2, 3].filter(r => !isInTop3 || r !== yourPosition + 1),
+                competitorASINs: competitorASINs,
+                competitorClickShare: totalCompetitorClickShare,
+                competitorConversionShare: totalCompetitorConversionShare,
+                yourClickShare: isInTop3 ? term.topASINs[yourPosition].clickShare : 0,
+                yourConversionShare: isInTop3 ? term.topASINs[yourPosition].conversionShare : 0,
+                searchFrequencyRank: term.searchFrequencyRank,
+                source: 'brand_analytics'
+            };
 
-                // Sort and output
-                results.yourKeywords.sort((a, b) => a.searchFreqRank - b.searchFreqRank);
-                results.missingKeywords.sort((a, b) => a.searchFreqRank - b.searchFreqRank);
-
-                displayResults(results);
-                saveResults(results);
-
-                resolve(results);
-            })
-            .on('error', reject);
-    });
-}
-
-function findPosition(yourASINs, clickedASINs) {
-    for (let i = 0; i < clickedASINs.length; i++) {
-        if (yourASINs.includes(clickedASINs[i])) {
-            return i;
+            conquestOpportunities.push(keyword);
         }
-    }
-    return -1;
-}
 
-function estimateVolume(rank) {
-    // Rough estimate based on search frequency rank
-    if (rank < 100) return 'Very High (10K+/mo)';
-    if (rank < 1000) return 'High (1K-10K/mo)';
-    if (rank < 10000) return 'Medium (100-1K/mo)';
-    if (rank < 100000) return 'Low (10-100/mo)';
-    return 'Very Low (<10/mo)';
-}
+        console.log(`\n\n✅ Found ${conquestOpportunities.length} keywords in Brand Analytics\n`);
 
-function displayResults(results) {
-    console.log('\n========================================');
-    console.log('📊 BRAND ANALYTICS KEYWORD ANALYSIS');
-    console.log('========================================\n');
+        // Enrich with DataForSEO
+        console.log('📊 Enriching with search volume and competition data...\n');
+        const keywords = conquestOpportunities.map(k => k.keyword);
+        const enriched = await enricher.enrichBatch(keywords);
 
-    // Your Keywords
-    console.log(`🎯 YOUR RANKING KEYWORDS (${results.yourKeywords.length} total)\n`);
-    console.log('Top 20:\n');
+        // Merge enriched data with Brand Analytics data
+        const merged = enriched.map((kw, i) => ({
+            ...kw,
+            ...conquestOpportunities[i],
+            searchVolume: kw.searchVolume || conquestOpportunities[i].searchVolume
+        }));
 
-    results.yourKeywords.slice(0, 20).forEach((kw, i) => {
-        console.log(`${i + 1}. ${kw.status} "${kw.searchTerm}"`);
-        console.log(`   Your Position: #${kw.yourPosition}`);
-        if (kw.competitorPosition) {
-            console.log(`   Competitor Position: #${kw.competitorPosition}`);
+        // Score opportunities (with bonus for Brand Analytics data)
+        console.log('\n🎯 Scoring conquest opportunities...\n');
+        const scored = merged.map(kw => {
+            const baseScore = scorer.scoreKeyword(kw);
+
+            // Bonus points for high competitor click/conversion share
+            let bonusPoints = 0;
+
+            // If competitors have high click share, it's valuable
+            if (kw.competitorClickShare > 30) bonusPoints += 5;
+            else if (kw.competitorClickShare > 20) bonusPoints += 3;
+
+            // If competitors have high conversion share, it's VERY valuable
+            if (kw.competitorConversionShare > 30) bonusPoints += 5;
+            else if (kw.competitorConversionShare > 20) bonusPoints += 3;
+
+            // If search frequency rank is <100k (very popular), bonus
+            if (kw.searchFrequencyRank < 100000) bonusPoints += 5;
+            else if (kw.searchFrequencyRank < 500000) bonusPoints += 3;
+
+            return {
+                ...baseScore,
+                opportunityScore: Math.min(100, baseScore.opportunityScore + bonusPoints),
+                bonusPoints: bonusPoints
+            };
+        });
+
+        // Classify
+        console.log('🏆 Classifying into tiers...\n');
+        const classified = classifier.classifyBatch(scored);
+
+        // Save to database
+        console.log('💾 Saving to database...\n');
+        let saved = 0;
+        for (const kw of classified) {
+            if (db.addKeyword(kw)) saved++;
         }
-        console.log(`   Search Volume: ${kw.volume}`);
-        console.log(`   Frequency Rank: ${kw.searchFreqRank}\n`);
-    });
+        console.log(`✅ Saved ${saved} conquest keywords\n`);
 
-    // Missing Keywords (OPPORTUNITIES!)
-    console.log(`\n🚀 COMPETITOR KEYWORDS YOU'RE MISSING (${results.missingKeywords.length} total)\n`);
-    console.log('Top 20 Opportunities:\n');
+        // Sync to Google Sheets
+        console.log('🔄 Syncing to Google Sheets...\n');
+        const sync = new SyncCoordinator(db);
+        await sync.pushToSheets();
+        db.recordSync('push', saved, true);
 
-    results.missingKeywords.slice(0, 20).forEach((kw, i) => {
-        console.log(`${i + 1}. ${kw.priority} "${kw.searchTerm}"`);
-        console.log(`   Competitor Position: #${kw.competitorPosition}`);
-        console.log(`   Search Volume: ${kw.volume}`);
-        console.log(`   Frequency Rank: ${kw.searchFreqRank}\n`);
-    });
+        // Show summary
+        console.log('\n═══════════════════════════════════════════');
+        console.log('📊 BRAND ANALYTICS CONQUEST SUMMARY');
+        console.log('═══════════════════════════════════════════\n');
 
-    console.log('\n========================================');
-    console.log('💡 RECOMMENDATIONS');
-    console.log('========================================\n');
+        const tier1 = classified.filter(k => k.tier === 'Tier 1');
+        const tier2 = classified.filter(k => k.tier === 'Tier 2');
+        const tier3 = classified.filter(k => k.tier === 'Tier 3');
 
-    const highPriority = results.missingKeywords.filter(k => k.searchFreqRank < 1000);
-    console.log(`1. Add ${highPriority.length} HIGH PRIORITY keywords to PPC`);
-    console.log(`2. Increase bids on ${results.yourKeywords.filter(k => k.status.includes('Losing')).length} keywords you're losing`);
-    console.log(`3. Optimize listings for top ${Math.min(10, results.missingKeywords.length)} opportunity keywords\n`);
-}
+        console.log(`⚔️  Total Keywords Analyzed: ${classified.length}`);
+        console.log(`🥇 Tier 1 (Elite): ${tier1.length} keywords`);
+        console.log(`🥈 Tier 2 (Strong): ${tier2.length} keywords`);
+        console.log(`🥉 Tier 3 (Good): ${tier3.length} keywords\n`);
 
-async function saveResults(results) {
-    // Save missing keywords (opportunities) to CSV
-    const csvWriter = createCsvWriter({
-        path: 'data/brand-analytics/competitor-keywords-opportunities.csv',
-        header: [
-            { id: 'searchTerm', title: 'Search Term' },
-            { id: 'competitorPosition', title: 'Competitor Position' },
-            { id: 'searchFreqRank', title: 'Search Frequency Rank' },
-            { id: 'volume', title: 'Estimated Volume' },
-            { id: 'priority', title: 'Priority' }
-        ]
-    });
+        console.log('🎯 Conquest Analysis:\n');
+        classified.forEach((kw, i) => {
+            const inTop3 = kw.yourRank && kw.yourRank <= 3;
+            const status = inTop3 ? '✅ IN TOP 3' : '❌ CONQUEST TARGET';
 
-    await csvWriter.writeRecords(results.missingKeywords);
-    console.log('✅ Saved opportunities to: data/brand-analytics/competitor-keywords-opportunities.csv\n');
+            console.log(`${i + 1}. ${kw.keyword}`);
+            console.log(`   ${status} | Score: ${kw.opportunityScore} | Tier: ${kw.tier}`);
+            if (kw.bonusPoints) console.log(`   Bonus: +${kw.bonusPoints} points (from Brand Analytics)`);
+            console.log(`   Competitor Click Share: ${kw.competitorClickShare?.toFixed(1)}%`);
+            console.log(`   Competitor Conv Share: ${kw.competitorConversionShare?.toFixed(1)}%`);
+            console.log(`   Search Rank: #${kw.searchFrequencyRank?.toLocaleString()}`);
+            if (kw.searchVolume) console.log(`   Volume: ${kw.searchVolume} | CPC: $${kw.estimatedCPC}`);
+            console.log('');
+        });
 
-    // Save your rankings
-    const csvWriter2 = createCsvWriter({
-        path: 'data/brand-analytics/your-keyword-rankings.csv',
-        header: [
-            { id: 'searchTerm', title: 'Search Term' },
-            { id: 'yourPosition', title: 'Your Position' },
-            { id: 'competitorPosition', title: 'Competitor Position' },
-            { id: 'searchFreqRank', title: 'Search Frequency Rank' },
-            { id: 'volume', title: 'Estimated Volume' },
-            { id: 'status', title: 'Status' }
-        ]
-    });
+        console.log('\n💡 STRATEGY RECOMMENDATIONS:\n');
 
-    await csvWriter2.writeRecords(results.yourKeywords);
-    console.log('✅ Saved your rankings to: data/brand-analytics/your-keyword-rankings.csv\n');
-}
+        const notInTop3 = classified.filter(k => !k.yourRank || k.yourRank > 3);
 
-// Command-line usage
-if (require.main === module) {
-    const csvFile = process.argv[2];
+        if (notInTop3.length > 0) {
+            console.log(`🎯 CONQUEST: ${notInTop3.length} keywords where competitors dominate`);
+            console.log(`   These are your PRIMARY targets - competitors are winning here`);
+            console.log(`   Deploy aggressive PPC campaigns to steal their traffic\n`);
+        }
 
-    if (!csvFile) {
-        console.log('\n📋 USAGE:');
-        console.log('node analyze-brand-analytics.js <path-to-search-terms.csv>\n');
-        console.log('STEPS:');
-        console.log('1. Download Search Terms Report from Seller Central > Brand Analytics');
-        console.log('2. Update YOUR_ASINS and COMPETITOR_ASINS in this script');
-        console.log('3. Run: node analyze-brand-analytics.js data/brand-analytics/search-terms.csv\n');
-        process.exit(1);
+        const inTop3 = classified.filter(k => k.yourRank && k.yourRank <= 3);
+        if (inTop3.length > 0) {
+            console.log(`✅ DEFEND: ${inTop3.length} keywords where you're already in top 3`);
+            console.log(`   Maintain your position, optimize for higher click/conversion share\n`);
+        }
+
+        console.log('📋 Next Steps:');
+        console.log('   1. Review all keywords in Google Sheets');
+        console.log('   2. Focus budget on conquest targets (not in top 3)');
+        console.log('   3. Set aggressive bids to break into top 3');
+        console.log('   4. Monitor click/conversion share weekly');
+        console.log('   5. Add more Brand Analytics data for more keywords\n');
+
+        console.log('✅ Check Google Sheets for full strategy!\n');
+        console.log('https://docs.google.com/spreadsheets/d/1zvQmjLxPLg-F_og7Ci1war5xaBpDeYMSoo65bVTrKHc/edit\n');
+
+        db.close();
+
+    } catch (error) {
+        console.error('❌ Analysis failed:', error.message);
+        console.error(error);
     }
-
-    if (!fs.existsSync(csvFile)) {
-        console.error(`❌ File not found: ${csvFile}`);
-        process.exit(1);
-    }
-
-    analyzeBrandAnalytics(csvFile).catch(console.error);
 }
 
-module.exports = { analyzeBrandAnalytics };
+analyzeBrandAnalytics();

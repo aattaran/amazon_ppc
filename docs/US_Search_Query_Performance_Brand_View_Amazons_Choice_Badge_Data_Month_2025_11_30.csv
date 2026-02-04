@@ -1,0 +1,5 @@
+﻿Brand=["ELEMNT"],Reporting Range=["Monthly"],Select year=["2025"],Select month=["November"]
+S.No.,"Time Frame","Group Name","Search Queries","Brand Impressions","Brand Clicks","Brand Cart adds","Brand Purchases","Brand Clicks per Impressions %","Brand Purchases per Impressions"
+"1","2025-11-30","with amazons choice","0","0","0","0","0","0.0","0.0"
+"2","2025-11-30","without amazons choice","111","9643","165","24","8","1.711","0.083"
+"3","2025-11-30","total","111","9643","165","24","8","1.711","0.083"
