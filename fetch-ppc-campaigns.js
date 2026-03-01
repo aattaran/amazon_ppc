@@ -1,369 +1,214 @@
 /**
- * ═══════════════════════════════════════════════════════════════════
- * TITAN PPC CAMPAIGNS FETCHER - VERBOSE DEBUG VERSION
- * ═══════════════════════════════════════════════════════════════════
- * 
- * This script fetches ALL PPC campaigns from Amazon Ads API V3
- * and syncs them to Google Sheets with EXTREME VERBOSITY for debugging.
- * 
- * Features:
- * - Step-by-step logging for every API call
- * - HTTP status code reporting
- * - Error details with full stack traces
- * - Campaign count tracking
- * - Google Sheets sync verification
+ * fetch-ppc-campaigns.js
+ *
+ * Fetches all Sponsored Products campaigns from Amazon Ads API v3
+ * and syncs them to the "PPC Campaigns" sheet with live formulas.
+ *
+ * Sheet structure:
+ *   Row 10  : Headers
+ *   Row 11+ : Campaign data
+ *
+ * Columns A-X:
+ *   A  Campaign Name      (API)
+ *   B  State              (API)
+ *   C  Type               (API)
+ *   D  Daily Budget       (API)
+ *   E  Spend 30d          (filled by fetch-ppc-metrics.js)
+ *   F  Sales 30d          (filled by fetch-ppc-metrics.js)
+ *   G  Impressions        (filled by fetch-ppc-metrics.js)
+ *   H  Clicks             (filled by fetch-ppc-metrics.js)
+ *   I  Orders             (filled by fetch-ppc-metrics.js)
+ *   J  CTR%               (formula)
+ *   K  CPC                (formula)
+ *   L  CVR%               (formula)
+ *   M  ACOS%              (formula)
+ *   N  ROAS               (formula)
+ *   O  VPC                (formula - core Chris Rawlings metric)
+ *   P  Target ACOS        (default from env)
+ *   Q  Min VPC            (default $12)
+ *   R  Is Bleeder         (formula)
+ *   S  Severity           (formula)
+ *   T  Efficiency Score   (formula)
+ *   U  Recommended Action (formula)
+ *   V  Suggested Bid Δ    (formula)
+ *   W  Campaign ID        (API - needed by fetch-ppc-metrics.js)
+ *   X  Last Updated       (timestamp)
  */
 
 require('dotenv').config();
 const UnifiedSheetsService = require('./src/titan/sync/unified-sheets');
 
-// ═══════════════════════════════════════════════════════════════════
-// CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════
+// ─── Config ──────────────────────────────────────────────────────────────────
 
 const CONFIG = {
-    refreshToken: process.env.AMAZON_REFRESH_TOKEN,
-    clientId: process.env.AMAZON_CLIENT_ID,
+    clientId:     process.env.AMAZON_CLIENT_ID,
     clientSecret: process.env.AMAZON_CLIENT_SECRET,
-    profileId: process.env.AMAZON_PROFILE_ID,
-    sheetsId: process.env.GOOGLE_SHEETS_ID
+    refreshToken: process.env.AMAZON_REFRESH_TOKEN,
+    profileId:    process.env.AMAZON_PROFILE_ID,
+    sheetsId:     process.env.GOOGLE_SHEETS_ID,
+    sheetName:    'PPC Campaigns',
+    dataStartRow: 11,
+    targetAcos:   parseFloat(process.env.TARGET_ACOS || 30),
+    minVpc:       12
 };
 
-class PPCCampaignFetcher {
-    constructor() {
-        console.log('\n╔════════════════════════════════════════════════════════════╗');
-        console.log('║  🚀 TITAN PPC CAMPAIGNS FETCHER (VERBOSE DEBUG MODE)      ║');
-        console.log('╚════════════════════════════════════════════════════════════╝\n');
+const HEADERS = [
+    'Campaign Name', 'State', 'Type', 'Daily Budget ($)',
+    'Spend 30d ($)', 'Sales 30d ($)', 'Impressions', 'Clicks', 'Orders',
+    'CTR%', 'CPC ($)', 'CVR%', 'ACOS%', 'ROAS', 'VPC ($)',
+    'Target ACOS', 'Min VPC ($)',
+    'Bleeder?', 'Severity', 'Score', 'Action', 'Bid Δ ($)',
+    'Campaign ID', 'Last Updated'
+];
 
-        this.sheets = new UnifiedSheetsService();
-        this.accessToken = null;
+// ─── Formula builder ─────────────────────────────────────────────────────────
 
-        // Validate configuration
-        this.validateConfig();
-    }
+function buildRow(campaign, rowNum) {
+    const r = rowNum;
+    const budget = campaign.budget?.budget ?? campaign.budget ?? 0;
+    const today = new Date().toISOString().split('T')[0];
 
-    /**
-     * Validate environment variables
-     */
-    validateConfig() {
-        console.log('🔍 Validating configuration...');
+    return [
+        campaign.name,                                   // A
+        campaign.state,                                  // B
+        campaign.targetingType || 'MANUAL',              // C
+        budget,                                          // D
+        0,                                               // E  Spend (metrics script fills this)
+        0,                                               // F  Sales
+        0,                                               // G  Impressions
+        0,                                               // H  Clicks
+        0,                                               // I  Orders
+        `=IFERROR(H${r}/G${r}*100,0)`,                  // J  CTR%
+        `=IFERROR(E${r}/H${r},0)`,                       // K  CPC
+        `=IFERROR(I${r}/H${r}*100,0)`,                  // L  CVR%
+        `=IFERROR(E${r}/F${r}*100,0)`,                  // M  ACOS%
+        `=IFERROR(F${r}/E${r},0)`,                       // N  ROAS
+        `=IFERROR(F${r}/H${r},0)`,                       // O  VPC
+        CONFIG.targetAcos,                               // P  Target ACOS
+        CONFIG.minVpc,                                   // Q  Min VPC
+        // R  Is Bleeder: spending + ACOS over target + VPC under threshold + enabled
+        `=AND(E${r}>0,M${r}>P${r},O${r}<Q${r},B${r}="ENABLED")`,
+        // S  Severity
+        `=IF(R${r}=FALSE,"NONE",IF(AND(M${r}>P${r}*2,O${r}<Q${r}*0.5),"CRITICAL",IF(AND(M${r}>P${r}*1.5,O${r}<Q${r}*0.7),"HIGH",IF(M${r}>P${r}*1.2,"MEDIUM","LOW"))))`,
+        // T  Efficiency Score
+        `=IFERROR((N${r}*100)+IF(O${r}>Q${r},50,0)+IF(M${r}<P${r},30,0)-IF(R${r},50,0),0)`,
+        // U  Recommended Action
+        `=IF(R${r}=TRUE,IF(S${r}="CRITICAL","PAUSE","REDUCE_BID"),IF(AND(M${r}<P${r}*0.8,O${r}>Q${r}*1.2),"INCREASE_BID",IF(T${r}>150,"WINNER","OPTIMIZE")))`,
+        // V  Suggested Bid Δ (15% of daily budget)
+        `=IF(U${r}="PAUSE",0,IF(U${r}="REDUCE_BID",-(D${r}*0.15),IF(U${r}="INCREASE_BID",D${r}*0.15,0)))`,
+        campaign.campaignId,                             // W  Campaign ID
+        today                                            // X  Last Updated
+    ];
+}
 
-        const required = ['refreshToken', 'clientId', 'clientSecret', 'profileId', 'sheetsId'];
-        const missing = required.filter(key => !CONFIG[key]);
+// ─── Amazon API ───────────────────────────────────────────────────────────────
 
-        if (missing.length > 0) {
-            console.error(`❌ Missing required env variables: ${missing.join(', ')}`);
-            process.exit(1);
-        }
+async function getAccessToken() {
+    const res = await fetch('https://api.amazon.com/auth/o2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            grant_type:    'refresh_token',
+            refresh_token: CONFIG.refreshToken,
+            client_id:     CONFIG.clientId,
+            client_secret: CONFIG.clientSecret
+        })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error_description || `Auth failed: ${res.status}`);
+    return data.access_token;
+}
 
-        console.log('   ✅ Client ID:', CONFIG.clientId.substring(0, 20) + '...');
-        console.log('   ✅ Profile ID:', CONFIG.profileId);
-        console.log('   ✅ Sheets ID:', CONFIG.sheetsId.substring(0, 20) + '...');
-        console.log('   ✅ Refresh Token:', CONFIG.refreshToken.substring(0, 20) + '...');
-        console.log('');
-    }
+async function fetchAllCampaigns(accessToken) {
+    const campaigns = [];
+    let nextToken = null;
+    let page = 1;
 
-    /**
-     * Step 1: Get Amazon Ads API Access Token
-     */
-    async authenticate() {
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('STEP 1: AUTHENTICATION');
-        console.log('═══════════════════════════════════════════════════════════\n');
+    do {
+        const body = {
+            maxResults: 100,
+            stateFilter: { include: ['ENABLED', 'PAUSED', 'ARCHIVED'] }
+        };
+        if (nextToken) body.nextToken = nextToken;
 
-        console.log('🔐 Requesting access token from Amazon LWA...');
-        console.log('   Endpoint: https://api.amazon.com/auth/o2/token');
-        console.log('   Method: POST');
-        console.log('   Grant Type: refresh_token\n');
-
-        try {
-            const response = await fetch('https://api.amazon.com/auth/o2/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    grant_type: 'refresh_token',
-                    refresh_token: CONFIG.refreshToken,
-                    client_id: CONFIG.clientId,
-                    client_secret: CONFIG.clientSecret
-                })
-            });
-
-            console.log(`📡 Response Status: ${response.status} ${response.statusText}`);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Authentication FAILED!');
-                console.error('   Status:', response.status);
-                console.error('   Response:', errorText);
-                throw new Error(`Auth failed: ${response.status} ${errorText}`);
-            }
-
-            const data = await response.json();
-
-            if (data.error) {
-                console.error('❌ Authentication FAILED!');
-                console.error('   Error:', data.error);
-                console.error('   Description:', data.error_description);
-                throw new Error(`Auth error: ${data.error_description || data.error}`);
-            }
-
-            this.accessToken = data.access_token;
-            console.log('✅ Authentication SUCCESS!');
-            console.log(`   Access Token: ${this.accessToken.substring(0, 30)}...`);
-            console.log('');
-
-        } catch (error) {
-            console.error('❌ Authentication EXCEPTION:', error.message);
-            throw error;
-        }
-    }
-
-    /**
-     * Step 2: Fetch ALL campaigns with pagination
-     */
-    async fetchAllCampaigns() {
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('STEP 2: FETCH CAMPAIGNS WITH PAGINATION');
-        console.log('═══════════════════════════════════════════════════════════\n');
-
-        let allCampaigns = [];
-        let nextToken = null;
-        let page = 1;
-
-        do {
-            console.log(`\n🔄 Fetching page ${page}...`);
-            console.log('   Endpoint: https://advertising-api.amazon.com/sp/campaigns/list');
-            console.log('   Method: POST');
-            console.log('   Max Results: 100');
-            if (nextToken) {
-                console.log('   Next Token:', nextToken.substring(0, 30) + '...');
-            }
-
-            try {
-                const requestBody = {
-                    maxResults: 100,
-                    stateFilter: {
-                        include: ['ENABLED', 'PAUSED', 'ARCHIVED']
-                    }
-                };
-
-                if (nextToken) {
-                    requestBody.nextToken = nextToken;
-                }
-
-                const response = await fetch('https://advertising-api.amazon.com/sp/campaigns/list', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.accessToken}`,
-                        'Amazon-Advertising-API-ClientId': CONFIG.clientId,
-                        'Amazon-Advertising-API-Scope': CONFIG.profileId,
-                        'Content-Type': 'application/vnd.spcampaign.v3+json',
-                        'Accept': 'application/vnd.spcampaign.v3+json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                console.log(`   📡 Response Status: ${response.status} ${response.statusText}`);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`   ❌ API Request FAILED on page ${page}!`);
-                    console.error('      Status:', response.status);
-                    console.error('      Response:', errorText);
-                    throw new Error(`API Error: ${response.status} ${errorText}`);
-                }
-
-                const data = await response.json();
-
-                if (data.code) {
-                    console.error(`   ❌ API Error on page ${page}:`, data.code);
-                    console.error('      Details:', data.details);
-                    throw new Error(`API Error: ${data.code} - ${data.details}`);
-                }
-
-                const campaigns = data.campaigns || [];
-                console.log(`   📦 Found ${campaigns.length} campaigns on page ${page}`);
-
-                if (campaigns.length > 0) {
-                    console.log(`      First campaign: "${campaigns[0].name}" (${campaigns[0].state})`);
-                }
-
-                allCampaigns = allCampaigns.concat(campaigns);
-                console.log(`   📊 Total campaigns so far: ${allCampaigns.length}`);
-
-                // Check for next page
-                nextToken = data.nextToken || null;
-
-                if (nextToken) {
-                    console.log(`   ➡️  Next token found - will fetch page ${page + 1}`);
-                } else {
-                    console.log('   ✅ No more pages - pagination complete');
-                }
-
-                page++;
-
-            } catch (error) {
-                console.error(`   ❌ EXCEPTION on page ${page}:`, error.message);
-                console.error('      Stack:', error.stack);
-                throw error;
-            }
-
-        } while (nextToken);
-
-        console.log('\n✅ Campaign Fetch COMPLETE!');
-        console.log(`   Total campaigns fetched: ${allCampaigns.length}`);
-        console.log(`   Total pages: ${page - 1}\n`);
-
-        return allCampaigns;
-    }
-
-    /**
-     * Step 3: Process campaigns into sheet rows
-     */
-    processCampaigns(campaigns) {
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('STEP 3: PROCESS CAMPAIGN DATA');
-        console.log('═══════════════════════════════════════════════════════════\n');
-
-        console.log(`🔧 Processing ${campaigns.length} campaigns...`);
-
-        const rows = campaigns.map((c, index) => {
-            const budget = c.budget?.budget || c.budget || 0;
-
-            if (index < 3) {
-                console.log(`   ${index + 1}. "${c.name}" - ${c.state} - Budget: $${budget}`);
-            }
-
-            return [
-                c.name,                     // Campaign Name
-                c.state,                    // State
-                c.targetingType,            // Targeting
-                budget,                     // Budget
-                0, 0, 0, 0, 0,             // Spend, Sales, Impressions, Clicks, Orders
-                0, 0, 0, 0, 0,             // CTR, CPC, ACOS, ROAS, CVR
-                'NO',                       // Is Bleeder
-                'NONE',                     // Severity
-                c.state === 'ENABLED' ? 'Fetch Reports' : 'Paused' // Recommendation
-            ];
+        const res = await fetch('https://advertising-api.amazon.com/sp/campaigns/list', {
+            method: 'POST',
+            headers: {
+                'Authorization':                     `Bearer ${accessToken}`,
+                'Amazon-Advertising-API-ClientId':   CONFIG.clientId,
+                'Amazon-Advertising-API-Scope':      CONFIG.profileId,
+                'Content-Type':                      'application/vnd.spcampaign.v3+json',
+                'Accept':                            'application/vnd.spcampaign.v3+json'
+            },
+            body: JSON.stringify(body)
         });
 
-        if (campaigns.length > 3) {
-            console.log(`   ... (${campaigns.length - 3} more campaigns)`);
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error(`Campaigns API error ${res.status}: ${err}`);
         }
 
-        console.log(`\n✅ Processed ${rows.length} rows for Google Sheets\n`);
+        const data = await res.json();
+        const batch = data.campaigns || [];
+        campaigns.push(...batch);
+        nextToken = data.nextToken || null;
 
-        return rows;
-    }
+        console.log(`  Page ${page}: ${batch.length} campaigns (total: ${campaigns.length})`);
+        page++;
+    } while (nextToken);
 
-    /**
-     * Step 4: Sync to Google Sheets
-     */
-    async syncToSheets(rows) {
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('STEP 4: SYNC TO GOOGLE SHEETS');
-        console.log('═══════════════════════════════════════════════════════════\n');
-
-        const sheetName = 'PPC Campaigns';
-
-        // Safety guard
-        if (!rows || rows.length === 0) {
-            console.error('❌ CRITICAL: No campaigns to sync!');
-            console.error('   This could indicate:');
-            console.error('   1. No campaigns in your Amazon Ads account');
-            console.error('   2. API returned empty response');
-            console.error('   3. Processing failed');
-            console.error('\n   Stopping to prevent data loss.');
-            return;
-        }
-
-        console.log(`💾 Syncing ${rows.length} rows to Google Sheets...`);
-        console.log(`   Sheet Name: ${sheetName}`);
-        console.log(`   Spreadsheet ID: ${CONFIG.sheetsId}`);
-        console.log(`   Target Range: A11:Q${10 + rows.length}`);
-        console.log('');
-
-        try {
-            // Step 4a: Clear existing data
-            console.log('   🧹 Clearing range A11:Q1000...');
-            await this.sheets.clearRange(sheetName, 'A11:Q1000');
-            console.log('   ✅ Range cleared successfully');
-
-            // Step 4b: Write new data
-            console.log(`\n   ✍️  Writing ${rows.length} rows starting at A11...`);
-            console.log(`      First row: ${rows[0][0]} (${rows[0][1]})`);
-
-            await this.sheets.writeRows(sheetName, rows, 'A11');
-
-            console.log('   ✅ Rows written successfully');
-
-            console.log('\n✅ Google Sheets Sync COMPLETE!');
-            console.log(`   URL: https://docs.google.com/spreadsheets/d/${CONFIG.sheetsId}`);
-            console.log('');
-
-        } catch (error) {
-            console.error('❌ Google Sheets Sync FAILED!');
-            console.error('   Error:', error.message);
-            console.error('   Stack:', error.stack);
-            throw error;
-        }
-    }
-
-    /**
-     * Main execution flow
-     */
-    async run() {
-        const startTime = Date.now();
-
-        try {
-            // Step 1: Authenticate
-            await this.authenticate();
-
-            // Step 2: Fetch campaigns
-            const campaigns = await this.fetchAllCampaigns();
-
-            // Step 3: Process data
-            const rows = this.processCampaigns(campaigns);
-
-            // Step 4: Sync to sheets
-            await this.syncToSheets(rows);
-
-            // Summary
-            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-
-            console.log('═══════════════════════════════════════════════════════════');
-            console.log('✅ EXECUTION COMPLETE');
-            console.log('═══════════════════════════════════════════════════════════\n');
-            console.log(`   Total Campaigns: ${campaigns.length}`);
-            console.log(`   Execution Time: ${duration}s`);
-            console.log(`   Status: SUCCESS ✅`);
-            console.log('');
-
-        } catch (error) {
-            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-
-            console.error('\n═══════════════════════════════════════════════════════════');
-            console.error('❌ EXECUTION FAILED');
-            console.error('═══════════════════════════════════════════════════════════\n');
-            console.error('   Error:', error.message);
-            console.error('   Stack:', error.stack);
-            console.error(`   Execution Time: ${duration}s`);
-            console.error('');
-
-            process.exit(1);
-        }
-    }
+    return campaigns;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// EXECUTE
-// ═══════════════════════════════════════════════════════════════════
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
-if (require.main === module) {
-    const fetcher = new PPCCampaignFetcher();
-    fetcher.run();
+async function run() {
+    console.log('\n🚀 Fetch PPC Campaigns\n');
+
+    // Validate env
+    const missing = ['clientId', 'clientSecret', 'refreshToken', 'profileId', 'sheetsId']
+        .filter(k => !CONFIG[k]);
+    if (missing.length) {
+        console.error('❌ Missing env vars:', missing.map(k => k.toUpperCase()).join(', '));
+        process.exit(1);
+    }
+
+    const sheets = new UnifiedSheetsService();
+
+    // 1. Authenticate
+    console.log('🔐 Authenticating with Amazon...');
+    const accessToken = await getAccessToken();
+    console.log('✅ Authenticated\n');
+
+    // 2. Fetch campaigns
+    console.log('📦 Fetching campaigns (all pages)...');
+    const campaigns = await fetchAllCampaigns(accessToken);
+    console.log(`✅ ${campaigns.length} campaigns fetched\n`);
+
+    // 3. Ensure sheet tab exists
+    await sheets.ensureSheet(CONFIG.sheetName);
+
+    // 4. Write headers to row 10
+    console.log('📝 Writing headers to row 10...');
+    await sheets.writeRows(CONFIG.sheetName, [HEADERS], 'A10');
+
+    // 5. Clear previous data rows
+    console.log('🧹 Clearing old data...');
+    await sheets.clearRange(CONFIG.sheetName, 'A11:X2000');
+
+    // 6. Build and write data rows with live formulas
+    const rows = campaigns.map((c, i) => buildRow(c, CONFIG.dataStartRow + i));
+    console.log(`✍️  Writing ${rows.length} rows with live formulas...`);
+    await sheets.writeRows(CONFIG.sheetName, rows, `A${CONFIG.dataStartRow}`);
+
+    console.log(`\n✅ Done!`);
+    console.log(`   ${campaigns.length} campaigns → "${CONFIG.sheetName}" (rows 11-${10 + campaigns.length})`);
+    console.log(`   Columns J–V are live Google Sheets formulas`);
+    console.log(`   Column W has Campaign IDs (needed for fetch-ppc-metrics.js)`);
+    console.log(`\n   Next step: node fetch-ppc-metrics.js`);
 }
 
-module.exports = PPCCampaignFetcher;
+run().catch(err => {
+    console.error('\n❌', err.message);
+    process.exit(1);
+});

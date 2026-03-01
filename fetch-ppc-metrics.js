@@ -1,314 +1,300 @@
 /**
- * Fetch PPC Campaign Performance Metrics
- * 
- * Fetches real performance data from Amazon Ads API
- * This script supplements fetch-ppc-campaigns.js by getting actual metrics
- * 
- * Usage: node fetch-ppc-metrics.js
+ * fetch-ppc-metrics.js
+ *
+ * Fetches 30-day performance metrics from Amazon Ads Reporting API v3
+ * and writes them into the "PPC Campaigns" sheet (columns E-I).
+ *
+ * Requires fetch-ppc-campaigns.js to have run first (Campaign IDs in column W).
+ *
+ * Columns updated:
+ *   E  Spend 30d ($)
+ *   F  Sales 30d ($)
+ *   G  Impressions
+ *   H  Clicks
+ *   I  Orders
+ *
+ * Columns J-V (CTR, CPC, CVR, ACOS, ROAS, VPC, Bleeder, etc.)
+ * recalculate automatically as they are Google Sheets formulas.
  */
 
 require('dotenv').config();
-const axios = require('axios');
+const zlib = require('zlib');
+const { google } = require('googleapis');
 const UnifiedSheetsService = require('./src/titan/sync/unified-sheets');
 
-const AMAZON_ADS_CONFIG = {
-    refreshToken: process.env.AMAZON_REFRESH_TOKEN,
-    clientId: process.env.AMAZON_CLIENT_ID,
-    clientSecret: process.env.AMAZON_CLIENT_SECRET,
-    profileId: process.env.AMAZON_PROFILE_ID
+// ─── Config ──────────────────────────────────────────────────────────────────
+
+const CONFIG = {
+    clientId:        process.env.AMAZON_CLIENT_ID,
+    clientSecret:    process.env.AMAZON_CLIENT_SECRET,
+    refreshToken:    process.env.AMAZON_REFRESH_TOKEN,
+    profileId:       process.env.AMAZON_PROFILE_ID,
+    sheetsId:        process.env.GOOGLE_SHEETS_ID,
+    sheetName:       'PPC Campaigns',
+    dataStartRow:    11,
+    reportDays:      30,
+    pollIntervalMs:  15000,
+    maxPollAttempts: 60   // 60 × 15s = 15 minutes max
 };
 
-class PPCMetricsFetcher {
-    constructor() {
-        this.sheets = new UnifiedSheetsService();
-        this.accessToken = null;
-    }
+// ─── Amazon API helpers ───────────────────────────────────────────────────────
 
-    /**
-     * Get access token
-     */
-    async getAccessToken() {
-        console.log('🔑 Authenticating with Amazon Ads API...\n');
-
-        try {
-            const response = await axios.post(
-                'https://api.amazon.com/auth/o2/token',
-                new URLSearchParams({
-                    grant_type: 'refresh_token',
-                    refresh_token: AMAZON_ADS_CONFIG.refreshToken,
-                    client_id: AMAZON_ADS_CONFIG.clientId,
-                    client_secret: AMAZON_ADS_CONFIG.clientSecret
-                }),
-                {
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                }
-            );
-
-            if (response.data.error) {
-                throw new Error(`Auth failed: ${response.data.error_description || response.data.error}`);
-            }
-
-            this.accessToken = response.data.access_token;
-            console.log('✅ Authentication successful\n');
-            return this.accessToken;
-
-        } catch (error) {
-            console.error('❌ Authentication failed:', error.message);
-            throw error;
-        }
-    }
-
-    /**
-     * Read existing campaign data from Google Sheets
-     */
-    async readCampaigns() {
-        console.log('📖 Reading campaigns from Google Sheets...\n');
-
-        const data = await this.sheets.readSheet('PPC Campaigns');
-
-        if (!data || data.length <= 10) {
-            throw new Error('No campaign data found');
-        }
-
-        // Headers in row 10 (index 9), data starts row 11 (index 10)
-        const campaigns = data.slice(10).map(row => ({
-            campaignName: row[0],
-            campaignId: row[13] || null  // Assuming Campaign ID is in column N
-        })).filter(c => c.campaignName);
-
-        console.log(`✅ Found ${campaigns.length} campaigns\n`);
-        return campaigns;
-    }
-
-    /**
-     * Request performance report from Amazon Ads API
-     */
-    async requestReport(days = 30) {
-        console.log(`📊 Requesting performance metrics report (last ${days} days)...\n`);
-
-        const formatDate = (date) => {
-            return date.toISOString().split('T')[0].replace(/-/g, '');
-        };
-
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - days);
-
-        try {
-            const response = await axios.post(
-                'https://advertising-api.amazon.com/v2/sp/campaigns/report',
-                {
-                    reportDate: formatDate(startDate),
-                    metrics: 'campaignId,impressions,clicks,cost,attributedSales14d,attributedConversions14d'
-                },
-                {
-                    headers: {
-                        'Amazon-Advertising-API-ClientId': AMAZON_ADS_CONFIG.clientId,
-                        'Amazon-Advertising-API-Scope': AMAZON_ADS_CONFIG.profileId,
-                        'Authorization': `Bearer ${this.accessToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            if (response.data.reportId) {
-                console.log(`   ✅ Report requested (ID: ${response.data.reportId})\n`);
-                return response.data.reportId;
-            } else {
-                throw new Error('No reportId returned');
-            }
-
-        } catch (error) {
-            if (error.response?.data) {
-                console.error('❌ API Error:', JSON.stringify(error.response.data, null, 2));
-            }
-            throw new Error(`Report request failed: ${error.message}`);
-        }
-    }
-
-    /**
-     * Poll for report completion
-     */
-    async pollReport(reportId) {
-        console.log('   Polling for report completion...');
-
-        const maxAttempts = 30;
-
-        for (let i = 0; i < maxAttempts; i++) {
-            try {
-                const response = await axios.get(
-                    `https://advertising-api.amazon.com/v2/reports/${reportId}`,
-                    {
-                        headers: {
-                            'Amazon-Advertising-API-ClientId': AMAZON_ADS_CONFIG.clientId,
-                            'Amazon-Advertising-API-Scope': AMAZON_ADS_CONFIG.profileId,
-                            'Authorization': `Bearer ${this.accessToken}`
-                        }
-                    }
-                );
-
-                const { status, location } = response.data;
-
-                if (status === 'SUCCESS') {
-                    console.log('   ✅ Report ready!\n');
-                    return location;
-                }
-
-                if (status === 'FAILURE') {
-                    throw new Error('Report generation failed');
-                }
-
-                // Still processing
-                if (i < maxAttempts - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-
-            } catch (error) {
-                console.warn(`   Poll attempt ${i + 1} failed:`, error.message);
-            }
-        }
-
-        throw new Error('Report timeout');
-    }
-
-    /**
-     * Download and parse report
-     */
-    async downloadReport(location) {
-        console.log('📥 Downloading report data...\n');
-
-        const response = await axios.get(location, {
-            headers: {
-                'Amazon-Advertising-API-ClientId': AMAZON_ADS_CONFIG.clientId,
-                'Amazon-Advertising-API-Scope': AMAZON_ADS_CONFIG.profileId,
-                'Authorization': `Bearer ${this.accessToken}`
-            }
-        });
-
-        // Parse JSON-lines format
-        const metrics = response.data
-            .split('\n')
-            .filter(line => line.trim())
-            .map(line => {
-                try {
-                    return JSON.parse(line);
-                } catch (e) {
-                    return null;
-                }
-            })
-            .filter(Boolean);
-
-        console.log(`✅ Downloaded metrics for ${metrics.length} campaigns\n`);
-        return metrics;
-    }
-
-    /**
-     * Update Google Sheets with metrics
-     */
-    async updateSheets(metrics) {
-        console.log('💾 Updating Google Sheets with performance metrics...\n');
-
-        // Read current sheet data
-        const allData = await this.sheets.readSheet('PPC Campaigns');
-        const campaigns = allData.slice(10); // Skip to row 11
-
-        // Create metrics lookup by campaign name (since we might not have IDs)
-        const metricsMap = {};
-        metrics.forEach(m => {
-            metricsMap[m.campaignId] = m;
-        });
-
-        // Update rows with metrics
-        let updatedCount = 0;
-        const updates = campaigns.map(row => {
-            const campaignId = row[13]; // Column N: Campaign ID
-            const metric = metricsMap[campaignId] || {};
-
-            const spend = parseFloat(metric.cost || 0);
-            const sales = parseFloat(metric.attributedSales14d || 0);
-            const impressions = parseInt(metric.impressions || 0);
-            const clicks = parseInt(metric.clicks || 0);
-            const orders = parseInt(metric.attributedConversions14d || 0);
-
-            const ctr = impressions > 0 ? (clicks / impressions * 100) : 0;
-            const cpc = clicks > 0 ? (spend / clicks) : 0;
-            const acos = sales > 0 ? (spend / sales * 100) : 0;
-            const roas = spend > 0 ? (sales / spend) : 0;
-            const cvr = clicks > 0 ? (orders / clicks * 100) : 0;
-
-            if (clicks > 0) updatedCount++;
-
-            return [
-                spend.toFixed(2),      // Column E
-                sales.toFixed(2),      // Column F
-                impressions,           // Column G
-                clicks,                // Column H
-                orders,                // Column I
-                ctr.toFixed(2),        // Column J
-                cpc.toFixed(2),        // Column K
-                acos.toFixed(2),       // Column L
-                roas.toFixed(2)        // Column M
-            ];
-        });
-
-        // Write metrics to columns E-M starting at row 11
-        await this.sheets.writeRows('PPC Campaigns', updates, 'E11');
-
-        console.log(`✅ Updated ${updatedCount} campaigns with real performance data\n`);
-    }
-
-    /**
-     * Main execution
-     */
-    async run() {
-        console.log('\n╔════════════════════════════════════════════╗');
-        console.log('║  📊 PPC METRICS FETCHER                    ║');
-        console.log('║  Amazon Ads Performance Data               ║');
-        console.log('╚════════════════════════════════════════════╝\n');
-
-        try {
-            // 1. Authenticate
-            await this.getAccessToken();
-
-            // 2. Request report
-            const reportId = await this.requestReport(30);
-
-            // 3. Poll until ready
-            const location = await this.pollReport(reportId);
-
-            // 4. Download metrics
-            const metrics = await this.downloadReport(location);
-
-            // 5. Update Google Sheets
-            await this.updateSheets(metrics);
-
-            console.log('✅ Done!\n');
-            console.log('📝 Next steps:');
-            console.log('   1. Review updated metrics in Google Sheets');
-            console.log('   2. Run: node optimize-bids.js');
-            console.log('   3. Review bid recommendations in columns R, S, T\n');
-
-            console.log('🔗 https://docs.google.com/spreadsheets/d/1zvQmjLxPLg-F_og7Ci1war5xaBpDeYMSoo65bVTrKHc/edit\n');
-
-        } catch (error) {
-            console.error('\n❌ Error:', error.message);
-            console.error('\n💡 Troubleshooting:');
-            console.error('   - Verify Amazon Ads API credentials in .env');
-            console.error('   - Check that Campaign IDs are in column N of Google Sheets');
-            console.error('   - Ensure you have API access permissions\n');
-            throw error;
-        }
-    }
+async function getAccessToken() {
+    const res = await fetch('https://api.amazon.com/auth/o2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            grant_type:    'refresh_token',
+            refresh_token: CONFIG.refreshToken,
+            client_id:     CONFIG.clientId,
+            client_secret: CONFIG.clientSecret
+        })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error_description || `Auth failed: ${res.status}`);
+    return data.access_token;
 }
 
-// Run if called directly
-if (require.main === module) {
-    const fetcher = new PPCMetricsFetcher();
-    fetcher.run().then(() => {
-        process.exit(0);
-    }).catch(err => {
-        console.error(err);
-        process.exit(1);
+function getDateRange(days) {
+    const end   = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    const fmt = d => d.toISOString().split('T')[0];
+    return { startDate: fmt(start), endDate: fmt(end) };
+}
+
+async function requestReport(accessToken) {
+    const { startDate, endDate } = getDateRange(CONFIG.reportDays);
+    console.log(`   Date range: ${startDate} → ${endDate}`);
+
+    const res = await fetch('https://advertising-api.amazon.com/reporting/reports', {
+        method: 'POST',
+        headers: {
+            'Authorization':                     `Bearer ${accessToken}`,
+            'Amazon-Advertising-API-ClientId':   CONFIG.clientId,
+            'Amazon-Advertising-API-Scope':      CONFIG.profileId,
+            'Content-Type':                      'application/json',
+            'Accept':                            'application/json'
+        },
+        body: JSON.stringify({
+            name:      `Campaign Metrics ${startDate}`,
+            startDate,
+            endDate,
+            configuration: {
+                adProduct:    'SPONSORED_PRODUCTS',
+                groupBy:      ['campaign'],
+                columns:      [
+                    'campaignId',
+                    'campaignName',
+                    'impressions',
+                    'clicks',
+                    'cost',
+                    'purchases14d',
+                    'sales14d'
+                ],
+                reportTypeId: 'spCampaigns',
+                timeUnit:     'SUMMARY',
+                format:       'GZIP_JSON'
+            }
+        })
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Report request failed ${res.status}: ${err}`);
+    }
+
+    const data = await res.json();
+    if (!data.reportId) throw new Error('No reportId returned: ' + JSON.stringify(data));
+    return data.reportId;
+}
+
+async function pollReport(accessToken, reportId) {
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    for (let attempt = 1; attempt <= CONFIG.maxPollAttempts; attempt++) {
+        const res = await fetch(`https://advertising-api.amazon.com/reporting/reports/${reportId}`, {
+            headers: {
+                'Authorization':                   `Bearer ${accessToken}`,
+                'Amazon-Advertising-API-ClientId': CONFIG.clientId,
+                'Amazon-Advertising-API-Scope':    CONFIG.profileId,
+                'Accept':                          'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            console.warn(`   Poll ${attempt}: HTTP ${res.status}, retrying...`);
+            await sleep(CONFIG.pollIntervalMs);
+            continue;
+        }
+
+        const data = await res.json();
+
+        if (data.status === 'COMPLETED') {
+            console.log(`   ✅ Report ready (attempt ${attempt})`);
+            return data.url;
+        }
+
+        if (data.status === 'FAILED') {
+            throw new Error(`Report failed: ${JSON.stringify(data.failureReason || data)}`);
+        }
+
+        console.log(`   Attempt ${attempt}/${CONFIG.maxPollAttempts}: ${data.status}...`);
+        await sleep(CONFIG.pollIntervalMs);
+    }
+
+    throw new Error('Report timed out');
+}
+
+async function downloadReport(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const text = zlib.gunzipSync(buffer).toString('utf8').trim();
+
+    // Amazon returns either a JSON array [...] or newline-delimited JSON
+    if (text.startsWith('[')) return JSON.parse(text);
+
+    return text
+        .split('\n')
+        .filter(l => l.trim())
+        .map(l => { try { return JSON.parse(l); } catch { return null; } })
+        .filter(Boolean);
+}
+
+// ─── Sheet helpers ────────────────────────────────────────────────────────────
+
+async function readCampaignIndex(sheets) {
+    const data = await sheets.readSheet(CONFIG.sheetName);
+
+    // Row 10 (index 9) = headers, data starts at row 11 (index 10)
+    const index = {};
+    data.slice(10).forEach((row, i) => {
+        const campaignId = row[22]; // Column W (0-indexed)
+        if (campaignId) {
+            index[String(campaignId)] = CONFIG.dataStartRow + i;
+        }
+    });
+
+    return index;
+}
+
+async function writeMetrics(rowUpdates) {
+    const auth = new google.auth.GoogleAuth({
+        credentials: {
+            client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+            private_key:  process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        },
+        scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    });
+    const sheetsApi = google.sheets({ version: 'v4', auth });
+
+    const data = rowUpdates.map(({ rowNum, spend, sales, impressions, clicks, orders }) => ({
+        range:  `${CONFIG.sheetName}!E${rowNum}:I${rowNum}`,
+        values: [[
+            parseFloat(spend.toFixed(2)),
+            parseFloat(sales.toFixed(2)),
+            impressions,
+            clicks,
+            orders
+        ]]
+    }));
+
+    await sheetsApi.spreadsheets.values.batchUpdate({
+        spreadsheetId: CONFIG.sheetsId,
+        resource: {
+            valueInputOption: 'USER_ENTERED',
+            data
+        }
     });
 }
 
-module.exports = PPCMetricsFetcher;
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+async function run() {
+    console.log('\n📊 Fetch PPC Metrics (Reporting API v3)\n');
+
+    const missing = ['clientId', 'clientSecret', 'refreshToken', 'profileId', 'sheetsId']
+        .filter(k => !CONFIG[k]);
+    if (missing.length) {
+        console.error('❌ Missing env vars:', missing.map(k => k.toUpperCase()).join(', '));
+        process.exit(1);
+    }
+
+    const sheets = new UnifiedSheetsService();
+
+    // 1. Authenticate
+    console.log('🔐 Authenticating...');
+    const accessToken = await getAccessToken();
+    console.log('✅ Authenticated\n');
+
+    // 2. Read campaign index (ID → sheet row number)
+    console.log('📖 Reading campaign IDs from sheet (column W)...');
+    const campaignIndex = await readCampaignIndex(sheets);
+    const indexedCount = Object.keys(campaignIndex).length;
+    console.log(`✅ ${indexedCount} campaigns indexed\n`);
+
+    if (indexedCount === 0) {
+        console.error('❌ No campaign IDs found in column W.');
+        console.error('   Run: node fetch-ppc-campaigns.js first.');
+        process.exit(1);
+    }
+
+    // 3. Request report
+    console.log('📋 Requesting 30-day performance report...');
+    const reportId = await requestReport(accessToken);
+    console.log(`   Report ID: ${reportId}\n`);
+
+    // 4. Poll until ready
+    console.log('⏳ Waiting for report to complete...');
+    const downloadUrl = await pollReport(accessToken, reportId);
+    console.log('');
+
+    // 5. Download and parse
+    console.log('📥 Downloading report data...');
+    const metrics = await downloadReport(downloadUrl);
+    console.log(`✅ ${metrics.length} records in report\n`);
+
+    // 6. Match metrics to sheet rows
+    const rowUpdates = [];
+    let matched = 0;
+    let unmatched = 0;
+
+    for (const m of metrics) {
+        const rowNum = campaignIndex[String(m.campaignId)];
+        if (!rowNum) { unmatched++; continue; }
+
+        rowUpdates.push({
+            rowNum,
+            spend:       parseFloat(m.cost || 0),
+            sales:       parseFloat(m.sales14d || 0),
+            impressions: parseInt(m.impressions || 0),
+            clicks:      parseInt(m.clicks || 0),
+            orders:      parseInt(m.purchases14d || 0)
+        });
+        matched++;
+    }
+
+    console.log(`   Matched:   ${matched} campaigns`);
+    if (unmatched > 0) console.log(`   Unmatched: ${unmatched} (not yet in sheet)`);
+    console.log('');
+
+    if (rowUpdates.length === 0) {
+        console.log('⚠️  No rows to update (no spend data in the last 30 days).');
+        return;
+    }
+
+    // 7. Write to sheet (batch update, single API call)
+    console.log(`💾 Writing metrics to ${rowUpdates.length} rows (columns E-I)...`);
+    await writeMetrics(rowUpdates);
+
+    console.log('\n✅ Done!');
+    console.log('   Columns E-I updated with real 30-day performance data.');
+    console.log('   Columns J-V (CTR, ACOS, VPC, Bleeder detection) auto-recalculated.');
+}
+
+run().catch(err => {
+    console.error('\n❌', err.message);
+    process.exit(1);
+});
