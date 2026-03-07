@@ -1,5 +1,15 @@
+[variables]
+NODE_ENV = "development"
+
 [phases.build]
-cmds = ["npm ci", "npm run build", "cp src/database/schema.sql dist/database/schema.sql"]
+cmds = [
+  "npm ci",
+  "npm run build",
+  "cp src/database/schema.sql dist/database/schema.sql"
+]
+
+[phases.deploy]
+cmds = ["npm prune --production"]
 
 [start]
 cmd = "node dist/server.js"
