@@ -28,9 +28,8 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     document.getElementById('topbarTitle').textContent = btn.textContent.trim();
     if (window.innerWidth < 768) closeSidebar();
     // Auto-load data for tabs that require it
-    if (tab === 'pending')    loadPendingChanges();
-    if (tab === 'activity')   loadActivityLog();
-    if (tab === 'automation') loadAutomationStatus();
+    if (tab === 'pending')  loadPendingChanges();
+    if (tab === 'activity') loadActivityLog();
   });
 });
 

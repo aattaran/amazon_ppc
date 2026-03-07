@@ -203,9 +203,10 @@ app.post('/api/pending/:id/approve', wrap(async (req, res) => {
     const { action, entity_type, entity_id, new_value } = change;
     if (action === 'raise_bid' || action === 'lower_bid') {
       await amazonClient.updateKeywordBids([{ keywordId: entity_id, bid: Number(new_value) }]);
-    } else if (action === 'negate') {
+    } else if (action === 'negate' && entity_id) {
+      // entity_id holds the campaignId for keyword-level negatives
       await amazonClient.createNegativeKeywords([{
-        campaignId: change.old_value ?? '',
+        campaignId: entity_id,
         keywordText: change.entity_name,
         matchType: 'NEGATIVE_EXACT',
         state: 'ENABLED',

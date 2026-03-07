@@ -29,7 +29,7 @@ export function initScheduler(client: any): void {
   if (enabled('ENABLE_DAILY_BLEEDERS')) {
     cron.schedule('0 6 * * *', () => {
       console.log('\n⏰ [CRON] Running bleeder detection...');
-      runSearchTermHarvestJob().catch(console.error);
+      runBidOptimizationJob().catch(console.error);
     }, { timezone: 'America/New_York' });
     console.log('  Scheduled: Daily bleeder detection at 6:00 AM ET');
   }
@@ -122,7 +122,7 @@ export async function runBidOptimizationJob() {
         changes.push({
           ruleId: 'R10',
           entityType: 'negative',
-          entityId: d.keyword.keywordId,
+          entityId: d.keyword.campaignId,  // campaignId so approve endpoint can dispatch
           entityName: d.keyword.keyword,
           action: 'negate',
           oldValue: null,
@@ -176,7 +176,7 @@ export async function runSearchTermHarvestJob() {
       changes.push({
         ruleId: neg.reason.includes('ACOS') ? 'R17' : 'R16',
         entityType: 'negative',
-        entityId: '',
+        entityId: neg.campaignId,  // stored so approve endpoint can dispatch
         entityName: neg.searchTerm,
         action: 'negate',
         oldValue: `spend=$${neg.wastedSpend.toFixed(2)}`,
