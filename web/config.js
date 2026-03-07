@@ -1,7 +1,7 @@
 /* API configuration — persisted in localStorage */
 const API_BASE = (() => {
   const stored = localStorage.getItem('ppc_api_base');
-  return stored || 'http://localhost:3000';
+  return stored || 'https://amazonppc-production.up.railway.app';
 })();
 
 function setApiBase(url) {
