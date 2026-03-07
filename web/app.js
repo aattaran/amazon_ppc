@@ -897,6 +897,167 @@ function initRulesFilter() {
 initRulesFilter();
 renderRules('all');
 
+/* ── RULE FLOWS TAB ──────────────────────────────────────── */
+
+const FLOW_DATA = [
+  {
+    title: 'Flow 1 — Pre-Launch Readiness', color: '#f59e0b', rules: 'R01  R02  R03',
+    steps: [
+      { r:'', label:'New Product', type:'start' },
+      { r:'R01', label:'Reviews ≥ 15?', type:'decision', yes:'R02', no:'BLOCK — Enroll in Vine. Wait.' },
+      { r:'R02', label:'Calculate break-even ACOS', type:'action', detail:'(price − COGS − FBA − storage) / price' },
+      { r:'R03', label:'Keyword list ≥ 30?', type:'decision', yes:'Launch PPC', no:'Research: Helium10 / Cerebro' },
+      { r:'', label:'Ready to Launch PPC', type:'end' },
+    ]
+  },
+  {
+    title: 'Flow 2 — Launch Phase (Weeks 1–4)', color: '#3b82f6', rules: 'R04  R05  R06  R07',
+    steps: [
+      { r:'', label:'Launch Day', type:'start' },
+      { r:'R04', label:'Wait 7 days — NO changes allowed', type:'action' },
+      { r:'R05', label:'Set Auto campaign CPC = $0.50–$0.75', type:'action' },
+      { r:'R06', label:'Set TOS modifier 50–100% on Ranking campaigns', type:'action' },
+      { r:'', label:'Week 2: Pull Search Term Report', type:'info' },
+      { r:'R07', label:'ACOS > break-even during launch?', type:'decision', yes:'NORMAL — rank investment. Keep running.', no:'Scale harder — increase bids' },
+      { r:'', label:'Month 2: Begin Optimization', type:'end' },
+    ]
+  },
+  {
+    title: 'Flow 3 — Bid Optimization Decision Tree', color: '#ef4444', rules: 'R08  R09  R10  R11  R12  R13  R14  R15',
+    steps: [
+      { r:'', label:'Review Keyword', type:'start' },
+      { r:'', label:'Has impressions?', type:'decision',
+        no:'R08 — Raise bid 25%',
+        yes:'Next: check clicks' },
+      { r:'', label:'Has clicks?', type:'decision',
+        no:'R09 — Fix main image & title (if ≥100 impr)\nR11 — Wait for data (if <100 impr)',
+        yes:'Next: check orders' },
+      { r:'', label:'Has orders?', type:'decision',
+        no:'R10 — NEGATE: add negative exact (if ≥10 clicks)\nR11 — Wait for data (if <10 clicks)',
+        yes:'Next: evaluate ACOS' },
+      { r:'', label:'ACOS vs Thresholds', type:'decision',
+        branches: [
+          'R12 — ACOS > 45%: Lower bid 15%',
+          'R13 — 30% < ACOS ≤ 45%: Lower bid 7.5%',
+          'R14 — ACOS ≤ 30%, ≥3 orders: Isolate → SKC',
+          'R15 — ACOS ≤ 30%, <3 orders: Raise bid 20%',
+        ]
+      },
+    ]
+  },
+  {
+    title: 'Flow 4 — Negative Keyword Harvest', color: '#dc2626', rules: 'R16  R17  R18',
+    steps: [
+      { r:'', label:'Pull Search Term Report', type:'start' },
+      { r:'R16', label:'clicks ≥ 10 AND orders == 0?', type:'decision', yes:'Add as NEGATIVE EXACT', no:'Check ACOS' },
+      { r:'R17', label:'ACOS > 45% break-even?', type:'decision', yes:'Add as NEGATIVE EXACT', no:'Check if winner' },
+      { r:'R14', label:'ACOS ≤ 30% AND orders ≥ 2?', type:'decision', yes:'Promote to SKC campaign', no:'Monitor — needs data' },
+      { r:'R18', label:'Winner in Exact campaign? → Negate in Auto/Phrase/Broad', type:'action' },
+      { r:'', label:'Apply negatives weekly', type:'end' },
+    ]
+  },
+  {
+    title: 'Flow 5 — Placement & Dayparting', color: '#8b5cf6', rules: 'R19  R20  R21',
+    steps: [
+      { r:'', label:'Review Placement Report', type:'start' },
+      { r:'R19', label:'TOS ACOS < Rest of Search ACOS?', type:'decision', yes:'Increase TOS modifier', no:'Keep current' },
+      { r:'R20', label:'Product pages converting well?', type:'decision', yes:'Do NOT pause — product pages working', no:'Reduce product page bids' },
+      { r:'R21', label:'Midnight–6am: high spend, low conversion?', type:'decision', yes:'Reduce bids overnight', no:'Keep 24/7 bids' },
+      { r:'', label:'Placement optimized', type:'end' },
+    ]
+  },
+  {
+    title: 'Flow 6 — Scaling Phase & Budget', color: '#10b981', rules: 'R22  R23  R24',
+    steps: [
+      { r:'', label:'Enter Scaling Phase', type:'start' },
+      { r:'R22', label:'TACOS > threshold for current phase?', type:'decision', yes:'BLOCK — return to optimize first', no:'Proceed to allocate' },
+      { r:'R23', label:'Allocate total PPC budget', type:'action',
+        branches: ['50% → Proven SKC campaigns', '25% → Discovery (Auto + Broad + Phrase)', '15% → Competitor ASIN targeting', '10% → Defensive brand campaigns'] },
+      { r:'R24', label:'Reviews < 30?', type:'decision', yes:'Enroll in Vine', no:'Continue scaling' },
+      { r:'', label:'Full Scaling Mode', type:'end' },
+    ]
+  },
+  {
+    title: 'Flow 7 — TACOS Phase Classification', color: '#6366f1', rules: 'R25  R26  R27  R28  R29',
+    steps: [
+      { r:'', label:'Calculate TACOS = adSpend / totalRevenue', type:'start' },
+      { r:'R25', label:'TACOS > 25%?', type:'decision', yes:'Phase = LAUNCH (month 1–2)', no:'Check next' },
+      { r:'R26', label:'15% < TACOS ≤ 25%?', type:'decision', yes:'Phase = OPTIMIZE (month 3–4)', no:'Check next' },
+      { r:'R27', label:'TACOS ≤ 15%', type:'action', detail:'Phase = SCALE / MATURE (month 5+)' },
+      { r:'R28', label:'TACOS trend worsening (2 weeks)?', type:'decision', yes:'PAUSE scaling → return to optimize', no:'Stay current' },
+      { r:'R29', label:'TACOS trend improving → Stay in current phase', type:'action' },
+    ]
+  },
+  {
+    title: 'Flow 8 — Funnel Diagnostic', color: '#06b6d4', rules: 'R30  R31  R32  R33  R34',
+    steps: [
+      { r:'', label:'Sales stalled — diagnose the funnel', type:'start' },
+      { r:'R30', label:'No impressions?', type:'decision', yes:'FIX: Raise bid or swap keyword', no:'Next stage' },
+      { r:'R31', label:'Impressions but no clicks?', type:'decision', yes:'FIX: Main image, title, price', no:'Next stage' },
+      { r:'R32', label:'Clicks but no orders?', type:'decision', yes:'FIX: Listing quality, price, reviews', no:'Next stage' },
+      { r:'R33', label:'Good ACOS but organic not improving?', type:'decision', yes:'FIX: Increase budget + external traffic', no:'Next stage' },
+      { r:'R34', label:'Good PPC but organic declining?', type:'decision', yes:'FIX: Increase TOS modifier + external traffic', no:'Healthy funnel' },
+      { r:'', label:'Healthy Funnel', type:'end' },
+    ]
+  },
+  {
+    title: 'Flow 9 — Weekly Maintenance Checklist', color: '#f97316', rules: 'R35  R36  R19  R20',
+    steps: [
+      { r:'', label:'Monday Morning', type:'start' },
+      { r:'', label:'Step 1: Pull Search Term Report → R16-R17', type:'action' },
+      { r:'', label:'Step 2: Negate bleeders, promote winners → R14', type:'action' },
+      { r:'', label:'Step 3: Adjust bids per decision tree → R08-R15', type:'action' },
+      { r:'R36', label:'Enforce: min 7 days between bid changes', type:'info' },
+      { r:'R19', label:'Check placement report: TOS vs Rest', type:'action' },
+      { r:'R35', label:'Budget ≥ 90% daily cap? → Increase or reallocate', type:'decision', yes:'Increase budget', no:'OK' },
+      { r:'', label:'Step 7: Calculate TACOS → R25-R29', type:'action' },
+      { r:'', label:'Done — see you next Monday', type:'end' },
+    ]
+  }
+];
+
+function renderFlows() {
+  const container = document.getElementById('flowsContainer');
+  if (!container) return;
+
+  container.innerHTML = FLOW_DATA.map(flow => {
+    const stepsHtml = flow.steps.map((s, i) => {
+      const rBadge = s.r ? `<span class="fs-rule">${s.r}</span>` : '';
+      const typeCls = `fs-${s.type}`;
+      let extra = '';
+
+      if (s.branches) {
+        extra = `<div class="fs-branches">${s.branches.map(b =>
+          `<div class="fs-branch-item">${b}</div>`).join('')}</div>`;
+      }
+      if (s.yes || s.no) {
+        extra += `<div class="fs-yn">`;
+        if (s.yes) extra += `<div class="fs-yes"><span class="fs-yn-tag">YES</span> ${s.yes}</div>`;
+        if (s.no) extra += `<div class="fs-no"><span class="fs-yn-tag">NO</span> ${s.no}</div>`;
+        extra += `</div>`;
+      }
+      if (s.detail) {
+        extra += `<div class="fs-detail">${s.detail}</div>`;
+      }
+
+      const arrow = i < flow.steps.length - 1 ? '<div class="fs-arrow">▼</div>' : '';
+
+      return `<div class="flow-step ${typeCls}">${rBadge}<div class="fs-label">${s.label}</div>${extra}</div>${arrow}`;
+    }).join('');
+
+    return `<div class="flow-card">
+      <div class="flow-hdr" style="border-left-color:${flow.color}">
+        <h3>${flow.title}</h3>
+        <div class="flow-rule-pills">${flow.rules.split('  ').map(r =>
+          `<span class="flow-pill">${r}</span>`).join('')}</div>
+      </div>
+      <div class="flow-steps">${stepsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+renderFlows();
+
 /* ── PENDING CHANGES TAB ─────────────────────────────────── */
 
 async function loadPendingChanges() {
