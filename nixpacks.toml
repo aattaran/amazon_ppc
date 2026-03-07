@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["npm ci", "npm run build", "cp src/database/schema.sql dist/database/schema.sql"]
+
+[start]
+cmd = "node dist/server.js"
