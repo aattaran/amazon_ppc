@@ -24,7 +24,7 @@ export function getPool(): pg.Pool {
       connectionString,
       max: 5,
       idleTimeoutMillis: 30_000,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined,
     });
   }
   return pool;
@@ -174,7 +174,7 @@ export async function isOnCooldown(keywordId: string, cooldownDays: number): Pro
   const db = getPool();
   const { rows } = await db.query(
     `SELECT 1 FROM audit_log
-     WHERE entity_id = $1 AND action IN ('raise_bid','lower_bid') AND status = 'applied'
+     WHERE entity_id = $1 AND action IN ('raise_bid','lower_bid') AND status IN ('applied','queued')
        AND created_at > NOW() - INTERVAL '1 day' * $2
      LIMIT 1`,
     [keywordId, cooldownDays],

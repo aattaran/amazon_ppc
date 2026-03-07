@@ -1,10 +1,7 @@
-[variables]
-NODE_ENV = "development"
-
 [phases.build]
 cmds = [
-  "npm ci",
-  "npm run build",
+  "npm ci --include=dev",
+  "./node_modules/.bin/tsc --project tsconfig.json",
   "cp src/database/schema.sql dist/database/schema.sql"
 ]
 

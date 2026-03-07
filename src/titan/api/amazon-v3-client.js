@@ -70,7 +70,7 @@ class AmazonV3Client {
                     'Authorization': `Bearer ${token}`,
                     'Amazon-Advertising-API-ClientId': this.config.clientId,
                     'Amazon-Advertising-API-Scope': this.config.profileId,
-                    'Content-Type': acceptHeader,
+                    'Content-Type': 'application/json',
                     'Accept': acceptHeader
                 },
                 body: JSON.stringify(requestBody)
@@ -177,8 +177,11 @@ class AmazonV3Client {
                 adProduct: 'SPONSORED_PRODUCTS',
                 groupBy: ['targeting'],  // v3 uses 'targeting', not 'keyword'
                 columns: [
+                    'campaignId',
+                    'campaignName',
                     'keywordId',
                     'keyword',        // v3 uses 'keyword', not 'keywordText'
+                    'matchType',
                     'impressions',
                     'clicks',
                     'cost',
@@ -280,7 +283,7 @@ class AmazonV3Client {
                 'Authorization': `Bearer ${token}`,
                 'Amazon-Advertising-API-ClientId': this.config.clientId,
                 'Amazon-Advertising-API-Scope': this.config.profileId,
-                'Content-Type': acceptHeader,
+                'Content-Type': 'application/json',
                 'Accept': acceptHeader,
             },
         };
@@ -309,12 +312,13 @@ class AmazonV3Client {
         const data = await this.apiRequest(
             'PUT',
             '/sp/keywords',
-            this.acceptHeaders.keywords,
+            this.acceptHeaders.keywordsMutate,
             body
         );
 
-        console.log(`✅ Updated ${data.keywords.length} keyword bids\n`);
-        return data.keywords;
+        const updated = data.keywords?.success ?? data.keywords ?? [];
+        console.log(`✅ Updated ${updated.length} keyword bids\n`);
+        return updated;
     }
 
     /**
@@ -332,8 +336,9 @@ class AmazonV3Client {
             body
         );
 
-        console.log(`✅ Created ${data.negativeKeywords.length} negative keywords\n`);
-        return data.negativeKeywords;
+        const created = data.negativeKeywords?.success ?? data.negativeKeywords ?? [];
+        console.log(`✅ Created ${created.length} negative keywords\n`);
+        return created;
     }
 
     /**
@@ -359,8 +364,9 @@ class AmazonV3Client {
             body
         );
 
-        console.log(`✅ Created ${data.campaigns.length} campaigns\n`);
-        return data.campaigns;
+        const created = data.campaigns?.success ?? data.campaigns ?? [];
+        console.log(`✅ Created ${created.length} campaigns\n`);
+        return created;
     }
 
     /**
@@ -372,7 +378,7 @@ class AmazonV3Client {
         const body = {
             campaigns: updates.map(u => ({
                 campaignId: u.campaignId,
-                budget: { budget: u.newBudget.toFixed(2), budgetType: 'DAILY' }
+                dailyBudget: { value: u.newBudget.toFixed(2), currencyCode: 'USD' }
             }))
         };
 
@@ -383,8 +389,9 @@ class AmazonV3Client {
             body
         );
 
-        console.log(`✅ Updated ${data.campaigns.length} campaign budgets\n`);
-        return data.campaigns;
+        const updated = data.campaigns?.success ?? data.campaigns ?? [];
+        console.log(`✅ Updated ${updated.length} campaign budgets\n`);
+        return updated;
     }
 
     /**
@@ -404,8 +411,9 @@ class AmazonV3Client {
             body
         );
 
+        const campaigns = data.campaigns?.success ?? data.campaigns ?? [];
         console.log(`✅ Campaign status updated\n`);
-        return data.campaigns[0];
+        return campaigns[0];
     }
 
     /**
@@ -425,8 +433,9 @@ class AmazonV3Client {
             body
         );
 
+        const keywords = data.keywords?.success ?? data.keywords ?? [];
         console.log(`✅ Keyword status updated\n`);
-        return data.keywords[0];
+        return keywords[0];
     }
 
     /**
@@ -454,8 +463,9 @@ class AmazonV3Client {
             body
         );
 
+        const campaigns = data.campaigns?.success ?? data.campaigns ?? [];
         console.log(`✅ Placement modifiers updated\n`);
-        return data.campaigns[0];
+        return campaigns[0];
     }
 
     /**

@@ -27,6 +27,10 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     document.getElementById('tab-' + tab).classList.add('active');
     document.getElementById('topbarTitle').textContent = btn.textContent.trim();
     if (window.innerWidth < 768) closeSidebar();
+    // Auto-load data for tabs that require it
+    if (tab === 'pending')    loadPendingChanges();
+    if (tab === 'activity')   loadActivityLog();
+    if (tab === 'automation') loadAutomationStatus();
   });
 });
 
@@ -1019,7 +1023,7 @@ async function loadJobRuns() {
 
 function triggerJobPrompt() {
   const jobs = ['bid-optimization', 'search-term-harvest', 'tacos-check', 'weekly-maintenance'];
-  const job = prompt('Which job to run?\\n\\n' + jobs.map((j,i) => `${i+1}. ${j}`).join('\\n') + '\\n\\nEnter number or name:');
+  const job = prompt('Which job to run?\n\n' + jobs.map((j,i) => `${i+1}. ${j}`).join('\n') + '\n\nEnter number or name:');
   if (!job) return;
   const name = jobs[parseInt(job)-1] || job.trim();
   apiFetch(`/api/jobs/${name}/run`, { method: 'POST' })
@@ -1186,7 +1190,7 @@ async function loadSTRFromAmazon() {
       spend:  r.spend,
       sales:  r.sales,
     }));
-    _liveNegatives = data.result.negativeRecommendations || [];
+    _liveNegatives = data.result?.negativeRecommendations || [];
     renderSTR();
     if (_liveNegatives.length > 0) {
       document.getElementById('pushNegativesBtn').style.display = 'inline-block';

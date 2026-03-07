@@ -102,7 +102,7 @@ app.post('/api/bids/preview', wrap(async (req, res) => {
   }
   // Normalize Amazon API shape → KeywordMetrics shape
   const normalized = keywords.map((kw: any) => ({
-    keywordId:    kw.keywordId   ?? kw.keywordId,
+    keywordId:    kw.keywordId   ?? kw.id ?? '',
     keyword:      kw.keyword     ?? kw.keywordText ?? '',
     matchType:    kw.matchType   ?? 'EXACT',
     campaignId:   kw.campaignId  ?? '',
@@ -185,11 +185,39 @@ app.get('/api/pending', wrap(async (_req, res) => {
   res.json({ changes });
 }));
 
+// ── POST /api/pending/approve-all ─────────────────────────────
+// Must be registered BEFORE /:id routes to prevent Express matching 'approve-all' as an id
+app.post('/api/pending/approve-all', wrap(async (_req, res) => {
+  const count = await approveAllPending();
+  res.json({ ok: true, approved: count });
+}));
+
 // ── POST /api/pending/:id/approve ─────────────────────────────
 app.post('/api/pending/:id/approve', wrap(async (req, res) => {
-  const change = await approveChange(Number(req.params.id));
+  const id = Number(req.params.id);
+  const change = await approveChange(id);
   if (!change) { res.status(404).json({ error: 'Not found' }); return; }
-  // TODO: apply the change to Amazon based on change.action
+
+  // Dispatch to Amazon based on stored action
+  try {
+    const { action, entity_type, entity_id, new_value } = change;
+    if (action === 'raise_bid' || action === 'lower_bid') {
+      await amazonClient.updateKeywordBids([{ keywordId: entity_id, bid: Number(new_value) }]);
+    } else if (action === 'negate') {
+      await amazonClient.createNegativeKeywords([{
+        campaignId: change.old_value ?? '',
+        keywordText: change.entity_name,
+        matchType: 'NEGATIVE_EXACT',
+        state: 'ENABLED',
+      }]);
+    }
+    // informational-only actions (phase_suggestion, tacos_alert, isolate_skc) need no API call
+  } catch (applyErr: any) {
+    console.error(`Failed to apply change #${id} to Amazon:`, applyErr.message);
+    res.status(502).json({ error: `Approved locally but Amazon API failed: ${applyErr.message}` });
+    return;
+  }
+
   res.json({ ok: true, change });
 }));
 
@@ -198,12 +226,6 @@ app.post('/api/pending/:id/reject', wrap(async (req, res) => {
   const change = await rejectChange(Number(req.params.id));
   if (!change) { res.status(404).json({ error: 'Not found' }); return; }
   res.json({ ok: true, change });
-}));
-
-// ── POST /api/pending/approve-all ─────────────────────────────
-app.post('/api/pending/approve-all', wrap(async (_req, res) => {
-  const count = await approveAllPending();
-  res.json({ ok: true, approved: count });
 }));
 
 // ── GET /api/audit-log ────────────────────────────────────────

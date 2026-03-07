@@ -29,7 +29,7 @@ export function initScheduler(client: any): void {
   if (enabled('ENABLE_DAILY_BLEEDERS')) {
     cron.schedule('0 6 * * *', () => {
       console.log('\n⏰ [CRON] Running bleeder detection...');
-      runBidOptimizationJob().catch(console.error);
+      runSearchTermHarvestJob().catch(console.error);
     }, { timezone: 'America/New_York' });
     console.log('  Scheduled: Daily bleeder detection at 6:00 AM ET');
   }
@@ -82,7 +82,7 @@ export async function runBidOptimizationJob() {
 
     // 2. Fetch current keywords to get live bids
     const liveKeywords = await amazonClient.fetchKeywords({ include: ['ENABLED', 'PAUSED'] });
-    const bidMap = new Map(liveKeywords.map((k: any) => [k.keywordId, k.bid?.value ?? 0]));
+    const bidMap = new Map(liveKeywords.map((k: any) => [k.keywordId, Number(k.bid?.value ?? 0)]));
 
     // 3. Merge current bids into report data
     const enriched = kwRows.map((r: any) => ({
