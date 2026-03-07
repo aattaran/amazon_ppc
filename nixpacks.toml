@@ -1,8 +1,7 @@
 [phases.build]
 cmds = [
   "npm ci --include=dev",
-  "./node_modules/.bin/tsc --project tsconfig.json",
-  "cp src/database/schema.sql dist/database/schema.sql"
+  "npm run build"
 ]
 
 [phases.deploy]

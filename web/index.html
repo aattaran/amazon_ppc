@@ -57,6 +57,10 @@
       <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
       Rule Flows
     </button>
+    <button class="nav-item" data-tab="diagrams">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm1 3a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H6a1 1 0 01-1-1V5zm7 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V5zm-4 6a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 00-1-1H8zm4 1a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z" clip-rule="evenodd"/></svg>
+      SOP Diagrams
+    </button>
     <button class="nav-item" data-tab="pending">
       <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
       Pending Changes
@@ -661,6 +665,15 @@
       <p>Visual decision flows with rule numbers. Every node maps to an automation rule.</p>
     </div>
     <div id="flowsContainer"></div>
+  </section>
+
+  <!-- ── TAB: SOP DIAGRAMS ─────────────────────────────────────── -->
+  <section class="tab-content" id="tab-diagrams">
+    <div class="page-header">
+      <h1>SOP Diagrams</h1>
+      <p>Visual flowcharts for every SOP phase. Rendered from Mermaid definitions.</p>
+    </div>
+    <div id="diagramsContainer"></div>
   </section>
 
   <!-- ── TAB: PENDING CHANGES ──────────────────────────────────── -->

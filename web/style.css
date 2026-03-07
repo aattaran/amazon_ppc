@@ -939,3 +939,25 @@ canvas#donut-chart { flex-shrink: 0; }
 .empty-state {
   text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 0.85rem;
 }
+
+/* ── SOP DIAGRAMS TAB ───────────────────────────────────────── */
+.diagram-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 28px; overflow: hidden;
+}
+.diagram-hdr {
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px;
+}
+.diagram-hdr h3 { font-size: 1.05rem; font-weight: 600; color: var(--text-1); }
+.diagram-tag {
+  display: inline-block; background: rgba(255,153,0,0.15); color: #ff9900;
+  font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 99px;
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+}
+.diagram-img-wrap {
+  padding: 24px; background: #f8f9fc; text-align: center;
+}
+.diagram-img-wrap img {
+  max-width: 100%; height: auto; border-radius: 8px;
+}
