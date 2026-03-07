@@ -2,20 +2,20 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Install all deps (including devDeps for tsc)
+# Install all deps first (cached layer)
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy source and compile
-COPY tsconfig.json ./
-COPY src/ ./src/
+# Copy everything else (respects .dockerignore)
+COPY . .
+
+# Compile TypeScript
 RUN npm run build
 
-# Copy static assets
-COPY web/ ./web/
-COPY src/database/schema.sql ./dist/database/schema.sql
+# Copy SQL schema into dist
+RUN cp src/database/schema.sql dist/database/schema.sql
 
-# Prune dev dependencies
+# Remove devDependencies
 RUN npm prune --production
 
 EXPOSE 3001
