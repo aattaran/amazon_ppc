@@ -8,7 +8,15 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "weekly-maintenance": "ts-node --esm scripts/weekly-maintenance.ts",
+    "launch-setup": "ts-node --esm scripts/launch-setup.ts",
+    "optimize": "ts-node --esm scripts/optimize.ts",
+    "scale": "ts-node --esm scripts/scale.ts",
+    "harvest": "ts-node --esm scripts/harvest-search-terms.ts",
+    "tacos-report": "ts-node --esm scripts/tacos-report.ts",
+    "server": "ts-node src/server.ts",
+    "server:dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [
     "amazon",
@@ -17,12 +25,16 @@
     "optimization",
     "supplements"
   ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "author": "Luxe Allur",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.13.2",
     "better-sqlite3": "^12.6.2",
     "bull": "^4.12.0",
+    "cors": "^2.8.6",
     "csv-parser": "^3.2.0",
     "csv-writer": "^1.6.0",
     "dotenv": "^16.3.1",
@@ -38,9 +50,12 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.11",
     "@types/node": "^20.19.30",
+    "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.18.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.55.0",

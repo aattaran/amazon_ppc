@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://ppc:${DB_PASSWORD:-ppcpass}@postgres:5432/amazon_ppc
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: amazon_ppc
+      POSTGRES_USER: ppc
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ppcpass}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ppc -d amazon_ppc"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+volumes:
+  pgdata:

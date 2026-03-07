@@ -67,8 +67,8 @@ const axios = require('axios');
 const dataForSEO = axios.create({
   baseURL: 'https://api.dataforseo.com/v3',
   auth: {
-    username: 'ali@mcro.ai',
-    password: 'REDACTED'
+    username: process.env.DATAFORSEO_USERNAME,  // Set in .env
+    password: process.env.DATAFORSEO_PASSWORD   // Set in .env
   }
 });
 

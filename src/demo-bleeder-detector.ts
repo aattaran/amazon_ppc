@@ -161,7 +161,7 @@ function printAnalysis(metrics: CampaignMetrics, analysis: any) {
         HEALTHY: '🟢',
     };
 
-    console.log(`Health Status: ${severityEmoji[analysis.severity]} ${analysis.severity}`);
+    console.log(`Health Status: ${severityEmoji[analysis.severity as keyof typeof severityEmoji]} ${analysis.severity}`);
     console.log(`Bleeder Score: ${analysis.score}/100`);
     console.log();
 

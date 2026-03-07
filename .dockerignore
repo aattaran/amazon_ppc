@@ -1,0 +1,10 @@
+node_modules
+.env
+.env.*
+data/
+*.db
+*.log
+.git
+docs/
+B2/
+amazon-search.png

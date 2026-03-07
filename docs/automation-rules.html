@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon PPC — Automation Rules</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #080d1a;
+      --surface:  #0f172a;
+      --card:     #1a2235;
+      --card-h:   #1e2a40;
+      --border:   #243048;
+      --border-l: #2d3c58;
+      --blue:     #3b82f6;
+      --green:    #10b981;
+      --yellow:   #f59e0b;
+      --red:      #ef4444;
+      --purple:   #8b5cf6;
+      --cyan:     #06b6d4;
+      --text:     #f1f5f9;
+      --text-2:   #94a3b8;
+      --text-3:   #64748b;
+      --radius:   10px;
+      --radius-sm:6px;
+    }
+
+    html { font-size: 15px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    .page-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 40px 28px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .page-header h1 span { color: var(--blue); }
+    .page-header p { color: var(--text-2); font-size: 0.875rem; }
+
+    .header-meta {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .meta-chip.rules   { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
+    .meta-chip.auto    { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+    .meta-chip.manual  { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
+
+    /* ── Nav ──────────────────────────────────────────── */
+    .section-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      position: sticky;
+      top: 102px;
+      z-index: 40;
+    }
+    .section-nav a {
+      padding: 10px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-3);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .section-nav a:hover { color: var(--text); border-bottom-color: var(--border-l); }
+    .section-nav a.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    /* ── Container ────────────────────────────────────── */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 40px 80px;
+    }
+
+    /* ── Section ──────────────────────────────────────── */
+    .rule-section {
+      margin-bottom: 48px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-top: 8px;
+    }
+    .section-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .section-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .section-desc {
+      color: var(--text-3);
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+      padding-left: 44px;
+    }
+
+    /* color per section */
+    .sec-prelaunch .section-number    { background: rgba(139,92,246,0.2); color: var(--purple); }
+    .sec-structure .section-number    { background: rgba(6,182,212,0.2); color: var(--cyan); }
+    .sec-launch .section-number       { background: rgba(239,68,68,0.2); color: var(--red); }
+    .sec-bids .section-number         { background: rgba(59,130,246,0.2); color: var(--blue); }
+    .sec-negatives .section-number    { background: rgba(239,68,68,0.2); color: var(--red); }
+    .sec-placement .section-number    { background: rgba(16,185,129,0.2); color: var(--green); }
+    .sec-dayparting .section-number   { background: rgba(245,158,11,0.2); color: var(--yellow); }
+    .sec-scaling .section-number      { background: rgba(16,185,129,0.2); color: var(--green); }
+    .sec-maintenance .section-number  { background: rgba(59,130,246,0.2); color: var(--blue); }
+    .sec-tacos .section-number        { background: rgba(245,158,11,0.2); color: var(--yellow); }
+    .sec-funnel .section-number       { background: rgba(139,92,246,0.2); color: var(--purple); }
+
+    /* ── Rule Card ────────────────────────────────────── */
+    .rule-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .rule-card:hover { border-color: var(--border-l); }
+
+    .rule-top {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .rule-id {
+      width: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+    }
+    .rule-id.critical { background: rgba(239,68,68,0.08); color: var(--red); }
+    .rule-id.high     { background: rgba(245,158,11,0.08); color: var(--yellow); }
+    .rule-id.medium   { background: rgba(59,130,246,0.08); color: var(--blue); }
+    .rule-id.low      { background: rgba(148,163,184,0.06); color: var(--text-3); }
+
+    .rule-body {
+      flex: 1;
+      padding: 14px 18px;
+      min-width: 0;
+    }
+
+    .rule-name-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .rule-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .rule-badges {
+      display: flex;
+      gap: 6px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-critical { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-high     { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .badge-medium   { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .badge-low      { background: rgba(148,163,184,0.1); color: var(--text-3); }
+    .badge-auto     { background: rgba(16,185,129,0.15); color: var(--green); }
+    .badge-manual   { background: rgba(139,92,246,0.15); color: var(--purple); }
+
+    .rule-condition {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--cyan);
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .rule-condition .kw { color: var(--purple); font-weight: 600; }
+    .rule-condition .op { color: var(--yellow); }
+    .rule-condition .val { color: var(--green); }
+    .rule-condition .logic { color: var(--red); font-weight: 600; }
+
+    .rule-action {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+    .rule-action-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 0.9rem;
+    }
+
+    /* ── Decision Tree Visual ─────────────────────────── */
+    .decision-tree-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .decision-tree-box h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .tree {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 2;
+      color: var(--text-2);
+      padding-left: 8px;
+    }
+    .tree .node { color: var(--text); font-weight: 600; }
+    .tree .cond { color: var(--cyan); }
+    .tree .act-raise  { color: var(--green); font-weight: 600; }
+    .tree .act-lower  { color: var(--yellow); font-weight: 600; }
+    .tree .act-negate { color: var(--red); font-weight: 600; }
+    .tree .act-skc    { color: var(--purple); font-weight: 600; }
+    .tree .act-wait   { color: var(--text-3); }
+    .tree .branch { color: var(--text-3); }
+
+    /* ── Formula Box ──────────────────────────────────── */
+    .formula-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .formula-box h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .formula-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .formula-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+    .formula-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .formula-expr {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: var(--cyan);
+      font-weight: 500;
+    }
+    .formula-note {
+      font-size: 0.72rem;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    /* ── Budget Allocation Visual ─────────────────────── */
+    .alloc-bar {
+      display: flex;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .alloc-segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: white;
+      transition: flex 0.3s;
+    }
+    .alloc-segment.skc       { flex: 50; background: var(--blue); }
+    .alloc-segment.discovery { flex: 25; background: var(--purple); }
+    .alloc-segment.competitor{ flex: 15; background: var(--yellow); }
+    .alloc-segment.defensive { flex: 10; background: var(--red); }
+
+    .alloc-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+    }
+    .alloc-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .alloc-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    /* ── TACOS Journey ────────────────────────────────── */
+    .tacos-journey {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .tacos-step {
+      flex: 1;
+      padding: 14px 16px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .tacos-step:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+    .tacos-step:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .tacos-step:not(:last-child) { border-right: none; }
+    .tacos-step .step-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .tacos-step .step-range { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+    .tacos-step .step-months { font-size: 0.72rem; color: var(--text-3); }
+    .tacos-step.t-launch   { background: rgba(239,68,68,0.06); }
+    .tacos-step.t-launch .step-label, .tacos-step.t-launch .step-range { color: var(--red); }
+    .tacos-step.t-growth   { background: rgba(245,158,11,0.06); }
+    .tacos-step.t-growth .step-label, .tacos-step.t-growth .step-range { color: var(--yellow); }
+    .tacos-step.t-momentum { background: rgba(59,130,246,0.06); }
+    .tacos-step.t-momentum .step-label, .tacos-step.t-momentum .step-range { color: var(--blue); }
+    .tacos-step.t-mature   { background: rgba(16,185,129,0.06); }
+    .tacos-step.t-mature .step-label, .tacos-step.t-mature .step-range { color: var(--green); }
+
+    /* ── Funnel ───────────────────────────────────────── */
+    .funnel {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      margin-bottom: 12px;
+    }
+    .funnel-stage {
+      flex: 1;
+      text-align: center;
+      padding: 16px 10px;
+      position: relative;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .funnel-stage:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+    .funnel-stage:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .funnel-stage:not(:last-child) { border-right: none; }
+    .funnel-stage:not(:last-child)::after {
+      content: '>';
+      position: absolute;
+      right: -5px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      font-size: 0.9rem;
+      z-index: 1;
+    }
+    .funnel-stage .f-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .funnel-stage .f-fix {
+      font-size: 0.72rem;
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    .page-footer {
+      text-align: center;
+      padding: 32px 40px;
+      font-size: 0.75rem;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Responsive ───────────────────────────────────── */
+    @media (max-width: 768px) {
+      .page-header, .container { padding-left: 20px; padding-right: 20px; }
+      .section-nav { padding: 0 20px; }
+      .formula-grid { grid-template-columns: 1fr; }
+      .tacos-journey, .funnel { flex-direction: column; }
+      .tacos-step, .funnel-stage { border-radius: 0 !important; border-right: 1px solid var(--border) !important; }
+      .tacos-step:not(:last-child), .funnel-stage:not(:last-child) { border-bottom: none; }
+      .funnel-stage:not(:last-child)::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ───────────────────────────────────────── -->
+<div class="page-header">
+  <h1><span>Automation Rules</span> &mdash; Amazon PPC SOP</h1>
+  <p>Every SOP rule as a conditional expression. Thresholds: TARGET_ACOS=30%, BREAK_EVEN_ACOS=45%, MIN_CLICKS=10.</p>
+  <div class="header-meta">
+    <span class="meta-chip rules">39 Rules</span>
+    <span class="meta-chip auto">22 Automatable</span>
+    <span class="meta-chip manual">17 Manual Review</span>
+  </div>
+</div>
+
+<!-- ── Section Nav ──────────────────────────────────── -->
+<nav class="section-nav">
+  <a href="#formulas" class="active">Formulas</a>
+  <a href="#prelaunch">Pre-Launch</a>
+  <a href="#structure">Structure</a>
+  <a href="#launch">Launch</a>
+  <a href="#bids">Bid Optimizer</a>
+  <a href="#negatives">Negatives</a>
+  <a href="#placement">Placement</a>
+  <a href="#dayparting">Dayparting</a>
+  <a href="#scaling">Scaling</a>
+  <a href="#maintenance">Maintenance</a>
+  <a href="#tacos">TACOS</a>
+  <a href="#funnel">Funnel</a>
+</nav>
+
+<!-- ── Content ──────────────────────────────────────── -->
+<div class="container">
+
+  <!-- ── Key Formulas ────────────────────────────────── -->
+  <div id="formulas" class="formula-box" style="margin-top: 8px;">
+    <h3>Key Formulas</h3>
+    <div class="formula-grid">
+      <div class="formula-item">
+        <div class="formula-label">ACOS</div>
+        <div class="formula-expr">adSpend / adRevenue</div>
+        <div class="formula-note">Target: &le; 30% &nbsp;|&nbsp; Break-even: 45%</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-label">TACOS</div>
+        <div class="formula-expr">adSpend / totalRevenue</div>
+        <div class="formula-note">totalRevenue = adRevenue + organicRevenue</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-label">Break-Even ACOS</div>
+        <div class="formula-expr">(price - COGS - FBA - storage) / price</div>
+        <div class="formula-note">ACOS below this = you make money</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-label">CVR (Conversion Rate)</div>
+        <div class="formula-expr">orders / clicks</div>
+        <div class="formula-note">Healthy: 10-20%+</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-label">CTR (Click-Through Rate)</div>
+        <div class="formula-expr">clicks / impressions</div>
+        <div class="formula-note">Healthy: 0.3-0.5%+</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-label">ROAS</div>
+        <div class="formula-expr">adRevenue / adSpend</div>
+        <div class="formula-note">Inverse of ACOS. Higher = better</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Pre-Launch ═══════════════════════ -->
+  <div id="prelaunch" class="rule-section sec-prelaunch">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2>Pre-Launch Readiness</h2>
+    </div>
+    <p class="section-desc">Gates that must pass before any PPC spend begins.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R01</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Minimum Reviews Gate</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">reviews</span> <span class="op">&lt;</span> <span class="val">15</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            BLOCK scaling. Enroll in Amazon Vine until reviews &ge; 15.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R02</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Target ACOS Calculation</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">targetAcos</span> <span class="op">=</span> (<span class="kw">price</span> <span class="op">-</span> <span class="kw">COGS</span> <span class="op">-</span> <span class="kw">FBA_fees</span> <span class="op">-</span> <span class="kw">storage</span>) <span class="op">/</span> <span class="kw">price</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#9998;</span>
+            Compute before launching any campaign. Set as TARGET_ACOS in .env.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R03</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Keyword List Minimum</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">keywordCount</span> <span class="op">&lt;</span> <span class="val">30</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#9888;</span>
+            WARN: Need 30-50 target keywords before launch. Use Helium10 or DataForSEO.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Structure ════════════════════════ -->
+  <div id="structure" class="rule-section sec-structure">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2>Campaign Structure</h2>
+    </div>
+    <p class="section-desc">Structural invariants that must always hold. Violations break optimization.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R37</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">One Match Type Per Ad Group</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">countDistinct</span>(<span class="kw">adGroup.matchTypes</span>) <span class="op">&gt;</span> <span class="val">1</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            VIOLATION: Split into separate ad groups. Cannot bid-optimize per match type if mixed.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R38</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">One Product Per Ad Group</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">countDistinct</span>(<span class="kw">adGroup.products</span>) <span class="op">&gt;</span> <span class="val">1</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            VIOLATION: Split into separate ad groups for product-level ACOS analysis.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R39</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Never Move Winning Keywords</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">keyword.isWinner</span> <span class="logic">AND</span> <span class="kw">keyword.isBeingMoved</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            BLOCK: Winners lose history in new campaigns. Move the losers out instead.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R18</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Cross-Campaign Negative Isolation</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">keyword.matchType</span> <span class="op">==</span> <span class="val">EXACT</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8614;</span>
+            Add as NEGATIVE EXACT in all Auto, Phrase, and Broad campaigns to prevent cannibalization.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Launch ═══════════════════════════ -->
+  <div id="launch" class="rule-section sec-launch">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2>Launch Phase (Weeks 1-4)</h2>
+    </div>
+    <p class="section-desc">First 4 weeks after campaign creation. Priority: velocity over profitability.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R04</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">7-Day No-Touch Window</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">daysSinceLaunch</span> <span class="op">&lt;</span> <span class="val">7</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128274;</span>
+            BLOCK all bid and budget changes. Algorithm needs 7 days of data.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R05</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Auto Campaign Initial CPC</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">campaign.type</span> <span class="op">==</span> <span class="val">AUTO</span> <span class="logic">AND</span> <span class="kw">phase</span> <span class="op">==</span> <span class="val">LAUNCH</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#36;</span>
+            Set CPC = $0.50&ndash;$0.75. Daily budget = $20&ndash;$50.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R06</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TOS Modifier on Ranking Campaigns</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">campaign.type</span> <span class="op">==</span> <span class="val">RANKING</span> <span class="logic">AND</span> <span class="kw">phase</span> <span class="op">==</span> <span class="val">LAUNCH</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8593;</span>
+            Set Top of Search placement modifier = 50&ndash;100%.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R07</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">High ACOS is Normal During Launch</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">phase</span> <span class="op">==</span> <span class="val">LAUNCH</span> <span class="logic">AND</span> <span class="kw">acos</span> <span class="op">&gt;</span> <span class="val">45%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10003;</span>
+            NO ACTION &mdash; this is a rank investment. Do NOT reduce bids during launch.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Bid Optimization ═════════════════ -->
+  <div id="bids" class="rule-section sec-bids">
+    <div class="section-header">
+      <div class="section-number">5.1</div>
+      <h2>Bid Optimization Decision Tree</h2>
+    </div>
+    <p class="section-desc">Weekly keyword-level decisions. Evaluate top-to-bottom; first match wins.</p>
+
+    <!-- Decision Tree Visual -->
+    <div class="decision-tree-box">
+      <h3>Decision Tree</h3>
+      <div class="tree">
+        <span class="node">Keyword Data</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9500;&#9472;</span> <span class="cond">impressions == 0?</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;</span> YES &rarr; <span class="act-raise">R08: Raise bid 25%</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9500;&#9472;</span> <span class="cond">clicks == 0?</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;</span> impressions &ge; 100 &rarr; <span class="act-wait">R09: Review image &amp; title</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;</span> impressions &lt; 100 &rarr; <span class="act-wait">Needs more data</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9500;&#9472;</span> <span class="cond">orders == 0?</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;</span> clicks &ge; 10 &rarr; <span class="act-negate">R10: NEGATE</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;</span> clicks &lt; 10 &rarr; <span class="act-wait">R11: Wait for more data</span><br>
+        <span class="branch">&nbsp;&nbsp;&#9492;&#9472;</span> <span class="cond">Has sales &rarr; evaluate ACOS</span><br>
+        <span class="branch">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> acos &gt; 45% &rarr; <span class="act-lower">R12: Lower bid 15%</span><br>
+        <span class="branch">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> 30% &lt; acos &le; 45% &rarr; <span class="act-lower">R13: Lower bid 7.5%</span><br>
+        <span class="branch">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> acos &le; 30% &amp; orders &ge; 3 &rarr; <span class="act-skc">R14: Isolate to SKC</span><br>
+        <span class="branch">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span> acos &le; 30% &amp; orders &lt; 3 &rarr; <span class="act-raise">R15: Raise bid 20%</span>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R08</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">No Impressions &mdash; Raise Bid</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">impressions</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8593;</span>
+            Raise bid 25%. &nbsp; <code>newBid = currentBid * 1.25</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R09</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Impressions, No Clicks &mdash; Creative Issue</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">impressions</span> <span class="op">&ge;</span> <span class="val">100</span> <span class="logic">AND</span> <span class="kw">clicks</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128247;</span>
+            Do NOT adjust bid. Review main image and title relevance. This is a creative problem.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R10</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Clicks, No Sales &mdash; Negate Bleeder</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">clicks</span> <span class="op">&ge;</span> <span class="val">10</span> <span class="logic">AND</span> <span class="kw">orders</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            Add as NEGATIVE EXACT. Pause keyword. Wasted spend.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id low">R11</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Clicks, No Sales &mdash; Needs Data</span>
+            <div class="rule-badges"><span class="badge badge-low">Low</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">clicks</span> <span class="op">&gt;</span> <span class="val">0</span> <span class="logic">AND</span> <span class="kw">clicks</span> <span class="op">&lt;</span> <span class="val">10</span> <span class="logic">AND</span> <span class="kw">orders</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8987;</span>
+            WAIT &mdash; need 10 clicks minimum before negating. Monitor next week.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R12</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">ACOS Above Break-Even &mdash; Lower Bid</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">acos</span> <span class="op">&gt;</span> <span class="val">45%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8595;</span>
+            Lower bid 15%. &nbsp; <code>newBid = currentBid * 0.85</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R13</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">ACOS Between Target and Break-Even &mdash; Gentle Reduction</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="val">30%</span> <span class="op">&lt;</span> <span class="kw">acos</span> <span class="op">&le;</span> <span class="val">45%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8595;</span>
+            Lower bid 7.5% (gentle). &nbsp; <code>newBid = currentBid * 0.925</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R14</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Low ACOS, Strong Performer &mdash; Isolate to SKC</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">acos</span> <span class="op">&le;</span> <span class="val">30%</span> <span class="logic">AND</span> <span class="kw">orders</span> <span class="op">&ge;</span> <span class="val">3</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#9733;</span>
+            Isolate into Single Keyword Campaign (SKC). Increase budget. Do NOT remove from original &mdash; move losers instead.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R15</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Low ACOS, Few Orders &mdash; Scale Up</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">acos</span> <span class="op">&le;</span> <span class="val">30%</span> <span class="logic">AND</span> <span class="kw">orders</span> <span class="op">&lt;</span> <span class="val">3</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8593;</span>
+            Raise bid 20%. &nbsp; <code>newBid = currentBid * 1.20</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Negatives ════════════════════════ -->
+  <div id="negatives" class="rule-section sec-negatives">
+    <div class="section-header">
+      <div class="section-number">5.2</div>
+      <h2>Negative Keywords</h2>
+    </div>
+    <p class="section-desc">Weekly harvest from Search Term Report. Negate waste immediately.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R16</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">High Clicks, Zero Sales</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">clicks</span> <span class="op">&ge;</span> <span class="val">10</span> <span class="logic">AND</span> <span class="kw">orders</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            Add as NEGATIVE EXACT in the source campaign.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R17</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">ACOS Above Break-Even</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">searchTerm.acos</span> <span class="op">&gt;</span> <span class="val">45%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            Add search term as NEGATIVE EXACT &mdash; losing money on every sale from this term.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Placement ════════════════════════ -->
+  <div id="placement" class="rule-section sec-placement">
+    <div class="section-header">
+      <div class="section-number">5.3</div>
+      <h2>Placement Optimization</h2>
+    </div>
+    <p class="section-desc">Top of Search vs. Rest of Search vs. Product Pages &mdash; evaluate separately.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R19</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TOS Outperforming</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">tos.acos</span> <span class="op">&lt;</span> <span class="kw">rest.acos</span> <span class="logic">AND</span> <span class="kw">tos.conversions</span> <span class="op">&gt;</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#8593;</span>
+            Increase TOS placement modifier (up to 100%).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R20</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Product Pages Converting &mdash; Don't Pause</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">productPages.orders</span> <span class="op">&gt;</span> <span class="val">0</span> <span class="logic">AND</span> <span class="kw">overall.acos</span> <span class="op">&gt;</span> <span class="kw">targetAcos</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#9888;</span>
+            Do NOT pause. Keyword looks bad overall but product pages are converting. Adjust placement modifiers, not base bid.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Dayparting ═══════════════════════ -->
+  <div id="dayparting" class="rule-section sec-dayparting">
+    <div class="section-header">
+      <div class="section-number">5.4</div>
+      <h2>Dayparting</h2>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R21</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Overnight Bid Reduction</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">hour</span> <span class="op">&ge;</span> <span class="val">0</span> <span class="logic">AND</span> <span class="kw">hour</span> <span class="op">&lt;</span> <span class="val">6</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#127769;</span>
+            Reduce bids during 12am&ndash;6am to prevent overnight waste on low-conversion traffic.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Scaling ══════════════════════════ -->
+  <div id="scaling" class="rule-section sec-scaling">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2>Scaling Phase</h2>
+    </div>
+    <p class="section-desc">Only enter when TACOS is healthy. Never mix scaling with optimization.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R22</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TACOS Gate for Scaling</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">phase</span> <span class="op">==</span> <span class="val">SCALE</span> <span class="logic">AND</span> <span class="kw">tacos</span> <span class="op">&gt;</span> <span class="val">15%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            BLOCK scaling. TACOS too high &mdash; return to optimization phase.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R23</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Budget Allocation at Scale</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">phase</span> <span class="op">==</span> <span class="val">SCALE</span>
+          </div>
+          <div class="alloc-bar" style="margin: 12px 0;">
+            <div class="alloc-segment skc">50%</div>
+            <div class="alloc-segment discovery">25%</div>
+            <div class="alloc-segment competitor">15%</div>
+            <div class="alloc-segment defensive">10%</div>
+          </div>
+          <div class="alloc-legend">
+            <div class="alloc-legend-item"><div class="alloc-dot" style="background:var(--blue)"></div>SKC (proven keywords) 50%</div>
+            <div class="alloc-legend-item"><div class="alloc-dot" style="background:var(--purple)"></div>Discovery (auto/broad/phrase) 25%</div>
+            <div class="alloc-legend-item"><div class="alloc-dot" style="background:var(--yellow)"></div>Competitor ASIN targeting 15%</div>
+            <div class="alloc-legend-item"><div class="alloc-dot" style="background:var(--red)"></div>Defensive brand 10%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R24</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Vine Enrollment Gate</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">reviews</span> <span class="op">&lt;</span> <span class="val">30</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#127793;</span>
+            Enroll in Amazon Vine before aggressive scaling.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Weekly Maintenance ═══════════════ -->
+  <div id="maintenance" class="rule-section sec-maintenance">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <h2>Weekly Maintenance</h2>
+    </div>
+    <p class="section-desc">Every Monday morning. Guard rails to prevent over-optimization.</p>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R35</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Budget Cap Warning</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">campaignSpend</span> <span class="op">&ge;</span> <span class="kw">dailyBudget</span> <span class="op">*</span> <span class="val">0.90</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#9888;</span>
+            WARN: Hitting budget cap. Missing afternoon/evening peak hours. Increase budget or reallocate.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R36</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Minimum Days Between Bid Changes</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">daysSinceLastBidChange</span> <span class="op">&lt;</span> <span class="val">7</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128274;</span>
+            BLOCK bid change. Algorithm needs 7+ days of data per change. Frequent changes disrupt learning.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: TACOS ════════════════════════════ -->
+  <div id="tacos" class="rule-section sec-tacos">
+    <div class="section-header">
+      <div class="section-number">7.1</div>
+      <h2>TACOS Phase Classification</h2>
+    </div>
+
+    <!-- TACOS Journey Visual -->
+    <div class="tacos-journey">
+      <div class="tacos-step t-launch">
+        <div class="step-label">Launch</div>
+        <div class="step-range">&gt; 25%</div>
+        <div class="step-months">Month 1-2</div>
+      </div>
+      <div class="tacos-step t-growth">
+        <div class="step-label">Growth</div>
+        <div class="step-range">15-25%</div>
+        <div class="step-months">Month 3-4</div>
+      </div>
+      <div class="tacos-step t-momentum">
+        <div class="step-label">Momentum</div>
+        <div class="step-range">10-15%</div>
+        <div class="step-months">Month 5-6</div>
+      </div>
+      <div class="tacos-step t-mature">
+        <div class="step-label">Mature</div>
+        <div class="step-range">8-12%</div>
+        <div class="step-months">Month 6+</div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R25</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TACOS &mdash; Launch Phase</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">tacos</span> <span class="op">&gt;</span> <span class="val">25%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#127937;</span>
+            Phase = LAUNCH. Expected 25-40%. Focus on velocity, not profitability.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R26</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TACOS &mdash; Growth Phase</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="val">15%</span> <span class="op">&lt;</span> <span class="kw">tacos</span> <span class="op">&le;</span> <span class="val">25%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128200;</span>
+            Phase = OPTIMIZE. Harvest negatives, adjust bids, review placements. Do NOT scale.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R27</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TACOS &mdash; Mature Phase</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">tacos</span> <span class="op">&le;</span> <span class="val">15%</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#127942;</span>
+            Phase = SCALE. Organic carrying weight. Scale proven SKC campaigns.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id critical">R28</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TACOS Trend Worsening</span>
+            <div class="rule-badges"><span class="badge badge-critical">Critical</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">tacos</span>[w] <span class="op">&gt;</span> <span class="kw">tacos</span>[w-1] <span class="op">&gt;</span> <span class="kw">tacos</span>[w-2]
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10007;</span>
+            PAUSE scaling. Return to optimization. Two consecutive weeks of rising TACOS = regression.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id low">R29</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">TACOS Trend Improving</span>
+            <div class="rule-badges"><span class="badge badge-low">Low</span><span class="badge badge-auto">Auto</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">tacos</span>[w] <span class="op">&lt;</span> <span class="kw">tacos</span>[w-1]
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#10003;</span>
+            Stay in current phase. Strategy is working &mdash; do not change approach.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ SECTION: Funnel Diagnostic ════════════════ -->
+  <div id="funnel" class="rule-section sec-funnel">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <h2>Funnel Diagnostic</h2>
+    </div>
+    <p class="section-desc">When sales stall, find which stage of the funnel is broken.</p>
+
+    <!-- Funnel Visual -->
+    <div class="funnel">
+      <div class="funnel-stage">
+        <div class="f-label">Impression</div>
+        <div class="f-fix">R30: bid / keyword</div>
+      </div>
+      <div class="funnel-stage">
+        <div class="f-label">Click</div>
+        <div class="f-fix">R31: image / title</div>
+      </div>
+      <div class="funnel-stage">
+        <div class="f-label">Add to Cart</div>
+        <div class="f-fix">R32: listing quality</div>
+      </div>
+      <div class="funnel-stage">
+        <div class="f-label">Purchase</div>
+        <div class="f-fix">R32: price / reviews</div>
+      </div>
+      <div class="funnel-stage">
+        <div class="f-label">Organic Rank</div>
+        <div class="f-fix">R33-34: budget / traffic</div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R30</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">No Impressions</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">impressions</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128269;</span>
+            FIX: Bid too low or keyword irrelevant. Raise bid 20-30% or swap keyword.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R31</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Impressions, No Clicks</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">impressions</span> <span class="op">&gt;</span> <span class="val">0</span> <span class="logic">AND</span> <span class="kw">clicks</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128247;</span>
+            FIX: Bad main image or title. CTR problem &mdash; improve creative.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R32</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Clicks, No Sales</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">clicks</span> <span class="op">&gt;</span> <span class="val">0</span> <span class="logic">AND</span> <span class="kw">orders</span> <span class="op">==</span> <span class="val">0</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128722;</span>
+            FIX: Listing quality &mdash; check images, bullets, price, reviews, A+ content.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id medium">R33</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Good ACOS, No Organic Lift</span>
+            <div class="rule-badges"><span class="badge badge-medium">Medium</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">acos</span> <span class="op">&le;</span> <span class="val">30%</span> <span class="logic">AND</span> <span class="kw">organicRank</span> <span class="val">NOT improving</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#128640;</span>
+            FIX: Not enough velocity. Increase budget. Add external traffic (TikTok, Instagram, Facebook).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-top">
+        <div class="rule-id high">R34</div>
+        <div class="rule-body">
+          <div class="rule-name-row">
+            <span class="rule-name">Good PPC, Organic Declining</span>
+            <div class="rule-badges"><span class="badge badge-high">High</span><span class="badge badge-manual">Manual</span></div>
+          </div>
+          <div class="rule-condition">
+            <span class="kw">ppc.sales</span> <span class="op">&gt;</span> <span class="val">0</span> <span class="logic">AND</span> <span class="kw">organicRank</span> <span class="val">declining</span>
+          </div>
+          <div class="rule-action">
+            <span class="rule-action-icon">&#9888;</span>
+            FIX: Competitor outranking. Increase TOS modifier. Drive external traffic.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="page-footer">
+  Amazon PPC SOP &mdash; 39 Automation Rules &nbsp;|&nbsp; Source: docs/amazon-ppc-sop.md &nbsp;|&nbsp; March 2026
+</footer>
+
+<script>
+  // Highlight active nav on scroll
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('.section-nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.section-nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-100px 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
