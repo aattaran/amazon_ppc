@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Native module build toolchain (required by better-sqlite3)
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
 # Install dependencies (includes devDependencies for TypeScript build)
