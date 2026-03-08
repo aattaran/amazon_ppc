@@ -5,12 +5,13 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Install dependencies (includes devDependencies for TypeScript build)
-COPY package*.json tsconfig.json ./
+# Copy everything first (single COPY avoids stale split-layer cache issues)
+COPY . .
+
+# Install all dependencies (devDeps needed for TypeScript compilation)
 RUN npm ci
 
-# Copy source and compile
-COPY . .
+# Compile TypeScript + postbuild copies schema.sql and src/titan/ to dist/
 RUN npm run build
 
 # Prune devDependencies for production image

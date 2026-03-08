@@ -12,6 +12,7 @@
 *.json
 !package.json
 !package-lock.json
+!tsconfig.json
 
 # Dependencies
 node_modules/
