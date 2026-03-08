@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amazon PPC SOP — Command Center</title>
+  <title>Amazon PPC — Command Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<!-- ── SIDEBAR ───────────────────────────────────────────────── -->
+<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
       <rect width="28" height="28" rx="6" fill="#3b82f6"/>
       <path d="M7 14l5 5 9-9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <span class="logo-text">PPC SOP</span>
+    <span class="logo-text">PPC Command</span>
   </div>
 
   <nav class="sidebar-nav">
@@ -25,41 +25,21 @@
       <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/></svg>
       Dashboard
     </button>
-    <button class="nav-item" data-tab="tacos">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
-      TACOS Tracker
-    </button>
     <button class="nav-item" data-tab="campaigns">
       <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/></svg>
       Campaigns
     </button>
-    <button class="nav-item" data-tab="bids">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/></svg>
-      Bid Optimizer
-    </button>
-    <button class="nav-item" data-tab="harvest">
+    <button class="nav-item" data-tab="search-terms">
       <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
-      STR Harvest
+      Search Terms
     </button>
-    <button class="nav-item" data-tab="launch">
+    <button class="nav-item" data-tab="automation">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/></svg>
+      Automation
+    </button>
+    <button class="nav-item" data-tab="builder">
       <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
-      Launch Setup
-    </button>
-    <button class="nav-item" data-tab="weekly">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
-      Weekly Checklist
-    </button>
-    <button class="nav-item" data-tab="rules">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
-      Automation Rules
-    </button>
-    <button class="nav-item" data-tab="flows">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
-      Rule Flows
-    </button>
-    <button class="nav-item" data-tab="diagrams">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm1 3a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H6a1 1 0 01-1-1V5zm7 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V5zm-4 6a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 00-1-1H8zm4 1a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z" clip-rule="evenodd"/></svg>
-      SOP Diagrams
+      Campaign Builder
     </button>
     <button class="nav-item" data-tab="pending">
       <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
@@ -81,15 +61,8 @@
   </div>
 </aside>
 
-<!-- ── MAIN ──────────────────────────────────────────────────── -->
+<!-- MAIN -->
 <main class="main">
-
-  <div class="api-config-bar" id="apiConfigBar">
-    <span class="api-config-label">Backend API:</span>
-    <input type="text" id="apiBaseInput" placeholder="http://localhost:3001" />
-    <button class="btn btn-secondary btn-sm" onclick="saveApiBase()">Save</button>
-    <span class="api-config-hint">Run <code>npm run server</code> locally to enable live Amazon data</span>
-  </div>
 
   <!-- Topbar -->
   <header class="topbar">
@@ -107,580 +80,358 @@
     </div>
   </header>
 
-  <!-- ── TAB: DASHBOARD ─────────────────────────────────────── -->
+  <!-- TAB: DASHBOARD -->
   <section class="tab-content active" id="tab-dashboard">
     <div class="page-header">
       <h1>Command Center</h1>
-      <p>Real-time view of your PPC health. Enter your numbers below.</p>
-    </div>
-
-    <!-- Quick input -->
-    <div class="card quick-input">
-      <h3 class="card-title">Quick Metrics Input</h3>
-      <div class="input-row">
-        <div class="input-group">
-          <label>Ad Spend ($)</label>
-          <input type="number" id="dash-spend" value="850" min="0" step="0.01" />
-        </div>
-        <div class="input-group">
-          <label>Ad Revenue ($)</label>
-          <input type="number" id="dash-adrev" value="2100" min="0" step="0.01" />
-        </div>
-        <div class="input-group">
-          <label>Total Revenue ($)</label>
-          <input type="number" id="dash-totalrev" value="3800" min="0" step="0.01" />
-        </div>
-        <button class="btn btn-primary" onclick="updateDashboard()">Calculate</button>
-        <button class="btn btn-amazon" id="loadDashboardBtn" onclick="loadDashboardFromAmazon()">⬇ Load from Amazon</button>
+      <div class="page-header-actions">
+        <select class="period-selector" id="dashPeriod" onchange="loadDashboard()">
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="loadDashboard()">Refresh</button>
       </div>
     </div>
 
-    <!-- Metric cards -->
-    <div class="metrics-grid">
+    <div class="metrics-grid" id="dashMetrics">
+      <div class="metric-card" id="mc-spend">
+        <div class="metric-label">Ad Spend</div>
+        <div class="metric-value" id="val-spend">--</div>
+        <div class="metric-sub" id="sub-spend">Loading...</div>
+      </div>
+      <div class="metric-card" id="mc-revenue">
+        <div class="metric-label">Ad Revenue</div>
+        <div class="metric-value" id="val-revenue">--</div>
+        <div class="metric-sub" id="sub-revenue">&nbsp;</div>
+      </div>
       <div class="metric-card" id="mc-acos">
         <div class="metric-label">ACOS</div>
-        <div class="metric-value" id="val-acos">—</div>
-        <div class="metric-sub" id="sub-acos">Ad Spend / Ad Revenue</div>
+        <div class="metric-value" id="val-acos">--</div>
+        <div class="metric-sub" id="sub-acos">Target: 30%</div>
         <div class="metric-bar"><div class="metric-bar-fill" id="bar-acos"></div></div>
-        <div class="metric-target">Target ≤ 30%</div>
       </div>
       <div class="metric-card" id="mc-tacos">
         <div class="metric-label">TACOS</div>
-        <div class="metric-value" id="val-tacos">—</div>
-        <div class="metric-sub" id="sub-tacos">Ad Spend / Total Revenue</div>
+        <div class="metric-value" id="val-tacos">--</div>
+        <div class="metric-sub" id="sub-tacos">Target: 12%</div>
         <div class="metric-bar"><div class="metric-bar-fill" id="bar-tacos"></div></div>
-        <div class="metric-target">Target ≤ 12%</div>
       </div>
       <div class="metric-card" id="mc-organic">
         <div class="metric-label">Organic Revenue</div>
-        <div class="metric-value" id="val-organic">—</div>
-        <div class="metric-sub" id="sub-organic">Total − Ad Revenue</div>
+        <div class="metric-value" id="val-organic">--</div>
+        <div class="metric-sub" id="sub-organic">&nbsp;</div>
       </div>
       <div class="metric-card" id="mc-dep">
         <div class="metric-label">Ad Dependency</div>
-        <div class="metric-value" id="val-dep">—</div>
-        <div class="metric-sub">% of revenue from ads</div>
+        <div class="metric-value" id="val-dep">--</div>
         <div class="metric-bar"><div class="metric-bar-fill" id="bar-dep"></div></div>
         <div class="metric-target">Goal: decrease over time</div>
       </div>
     </div>
 
+    <!-- Campaign summary -->
+    <div class="card" id="dashCampaignSummary">
+      <h3 class="card-title">Campaign Overview</h3>
+      <div id="dashCampaignContent" class="loading-placeholder">Loading campaigns...</div>
+    </div>
+
     <!-- Phase journey -->
     <div class="card">
-      <h3 class="card-title">TACOS Journey — Phase Map</h3>
+      <h3 class="card-title">TACOS Journey</h3>
       <div class="phase-journey">
-        <div class="journey-segment launch-seg">
+        <div class="journey-segment launch-seg" id="journey-launch">
           <div class="journey-label">Launch</div>
           <div class="journey-range">TACOS &gt; 25%</div>
-          <div class="journey-desc">Build velocity. High spend OK. No-touch 7 days.</div>
+          <div class="journey-desc">Build velocity. High spend OK.</div>
         </div>
-        <div class="journey-arrow">→</div>
-        <div class="journey-segment optimize-seg">
+        <div class="journey-arrow">&rarr;</div>
+        <div class="journey-segment optimize-seg" id="journey-optimize">
           <div class="journey-label">Optimize</div>
-          <div class="journey-range">15–25%</div>
-          <div class="journey-desc">Harvest negatives. Adjust bids. Review placements.</div>
+          <div class="journey-range">15-25%</div>
+          <div class="journey-desc">Harvest negatives. Tighten bids.</div>
         </div>
-        <div class="journey-arrow">→</div>
-        <div class="journey-segment scale-seg">
+        <div class="journey-arrow">&rarr;</div>
+        <div class="journey-segment scale-seg" id="journey-scale">
           <div class="journey-label">Scale</div>
           <div class="journey-range">TACOS &lt; 15%</div>
-          <div class="journey-desc">Scale SKC budgets. External traffic. 50% budget to SKC.</div>
-        </div>
-      </div>
-      <div class="phase-pointer" id="phasePointer"></div>
-    </div>
-  </section>
-
-  <!-- ── TAB: TACOS ─────────────────────────────────────────── -->
-  <section class="tab-content" id="tab-tacos">
-    <div class="page-header">
-      <h1>TACOS Tracker</h1>
-      <p>Total ACOS = Ad Spend ÷ Total Revenue (ads + organic). Track your journey to organic dominance.</p>
-    </div>
-
-    <div class="two-col">
-      <div class="card">
-        <h3 class="card-title">Inputs</h3>
-        <div class="form-stack">
-          <div class="input-group">
-            <label>Ad Spend ($)</label>
-            <input type="number" id="t-spend" value="850" min="0" step="0.01" />
-          </div>
-          <div class="input-group">
-            <label>Ad Revenue ($)</label>
-            <input type="number" id="t-adrev" value="2100" min="0" step="0.01" />
-          </div>
-          <div class="input-group">
-            <label>Total Revenue ($) <small>include organic</small></label>
-            <input type="number" id="t-totalrev" value="3800" min="0" step="0.01" />
-          </div>
-          <div class="input-group">
-            <label>Current Phase</label>
-            <select id="t-phase">
-              <option value="launch">Launch</option>
-              <option value="optimize">Optimize</option>
-              <option value="scale">Scale</option>
-            </select>
-          </div>
-          <button class="btn btn-primary full-width" onclick="calcTacos()">Calculate TACOS</button>
-        </div>
-      </div>
-
-      <div class="card" id="tacos-result">
-        <h3 class="card-title">Results</h3>
-        <div class="result-placeholder">Enter values and click Calculate</div>
-        <div class="tacos-output hidden" id="tacos-output">
-          <div class="big-stat" id="t-tacos-val"></div>
-          <div class="big-stat-label">TACOS</div>
-          <div class="status-badge-lg" id="t-status-badge"></div>
-          <div class="result-rows" id="t-result-rows"></div>
-          <div class="alert-box" id="t-rationale"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 class="card-title">TACOS Thresholds Reference</h3>
-      <div class="threshold-table">
-        <div class="threshold-row header-row">
-          <span>Phase</span><span>TACOS Range</span><span>Bid Strategy</span><span>Budget Focus</span>
-        </div>
-        <div class="threshold-row launch-row">
-          <span class="phase-chip launch-chip">Launch</span>
-          <span>&gt; 25%</span>
-          <span>High TOS (+75%). Accept losses. Build velocity.</span>
-          <span>Equal across all campaigns</span>
-        </div>
-        <div class="threshold-row optimize-row">
-          <span class="phase-chip optimize-chip">Optimize</span>
-          <span>15–25%</span>
-          <span>Harvest negatives. Lower bleeders. Raise winners.</span>
-          <span>Start shifting to SKC</span>
-        </div>
-        <div class="threshold-row scale-row">
-          <span class="phase-chip scale-chip">Scale</span>
-          <span>&lt; 15%</span>
-          <span>SKC at 100% TOS mod. Max bid on proven keywords.</span>
-          <span>50% SKC / 25% Discovery / 15% Competitor / 10% Brand</span>
+          <div class="journey-desc">Scale SKC budgets. External traffic.</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── TAB: CAMPAIGNS ─────────────────────────────────────── -->
+  <!-- TAB: CAMPAIGNS -->
   <section class="tab-content" id="tab-campaigns">
     <div class="page-header">
-      <h1>Campaign Structure</h1>
-      <p>The 6 SOP-required campaigns. Every product launch starts with this exact structure.</p>
-    </div>
-
-    <div class="card">
-      <h3 class="card-title">Budget Planner</h3>
-      <div class="input-row">
-        <div class="input-group">
-          <label>Total Daily Budget ($)</label>
-          <input type="number" id="camp-budget" value="100" min="1" step="1" oninput="updateCampaignBudgets()" />
-        </div>
-        <div class="input-group">
-          <label>Product Name</label>
-          <input type="text" id="camp-product" value="LUXE-SERUM" oninput="updateCampaignNames()" />
-        </div>
+      <h1>Campaigns</h1>
+      <div class="page-header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="loadCampaigns()">Refresh</button>
       </div>
     </div>
-
-    <div class="campaign-grid" id="campaign-grid">
-      <!-- Rendered by JS -->
-    </div>
-
-    <div class="card">
-      <h3 class="card-title">Scale Phase — Budget Allocation</h3>
-      <div class="donut-section">
-        <canvas id="donut-chart" width="200" height="200"></canvas>
-        <div class="donut-legend" id="donut-legend"></div>
-      </div>
+    <div id="campaignsContainer">
+      <div class="loading-placeholder">Click Campaigns tab to load...</div>
     </div>
   </section>
 
-  <!-- ── TAB: BID OPTIMIZER ─────────────────────────────────── -->
-  <section class="tab-content" id="tab-bids">
+  <!-- TAB: SEARCH TERMS -->
+  <section class="tab-content" id="tab-search-terms">
     <div class="page-header">
-      <h1>Bid Optimizer</h1>
-      <p>Enter keyword metrics — get the exact SOP decision tree recommendation.</p>
-    </div>
-
-    <div class="two-col">
-      <div class="card">
-        <h3 class="card-title">Keyword Metrics</h3>
-        <div class="form-stack">
-          <div class="input-group">
-            <label>Keyword</label>
-            <input type="text" id="b-kw" value="collagen face serum" />
-          </div>
-          <div class="input-group">
-            <label>Current Bid ($)</label>
-            <input type="number" id="b-bid" value="1.20" min="0.02" step="0.01" />
-          </div>
-          <div class="input-group">
-            <label>Impressions</label>
-            <input type="number" id="b-impr" value="1200" min="0" />
-          </div>
-          <div class="input-group">
-            <label>Clicks</label>
-            <input type="number" id="b-clicks" value="34" min="0" />
-          </div>
-          <div class="input-group">
-            <label>Orders</label>
-            <input type="number" id="b-orders" value="3" min="0" />
-          </div>
-          <div class="input-group">
-            <label>Ad Spend ($)</label>
-            <input type="number" id="b-spend" value="40.80" min="0" step="0.01" />
-          </div>
-          <div class="input-group">
-            <label>Ad Revenue ($)</label>
-            <input type="number" id="b-sales" value="105.00" min="0" step="0.01" />
-          </div>
-          <button class="btn btn-primary full-width" onclick="runBidOptimizer()">Run Decision Tree</button>
-          <button class="btn btn-amazon full-width" onclick="loadKeywordsForOptimizer()">⬇ Load Keywords from Amazon</button>
-          <button class="btn btn-danger full-width" id="pushBidsBtn" onclick="pushBidsToAmazon()" style="display:none">↑ Push Bid Changes to Amazon</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 class="card-title">Recommendation</h3>
-        <div class="result-placeholder" id="bid-placeholder">Fill in keyword metrics and click Run</div>
-        <div class="bid-result hidden" id="bid-result">
-          <div class="bid-action-badge" id="bid-action-badge"></div>
-          <div class="bid-reason" id="bid-reason"></div>
-          <div class="bid-new-amount" id="bid-new-amount"></div>
-          <div class="decision-tree" id="decision-tree"></div>
-        </div>
+      <h1>Search Terms</h1>
+      <div class="page-header-actions">
+        <select class="period-selector" id="strPeriod" onchange="loadSearchTerms()">
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30" selected>Last 30 days</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="loadSearchTerms()">Refresh</button>
       </div>
     </div>
 
-    <div class="card">
-      <h3 class="card-title">Decision Tree Reference</h3>
-      <div class="tree-visual">
-        <div class="tree-node root-node">Keyword Data</div>
-        <div class="tree-branches">
-          <div class="tree-branch">
-            <div class="branch-label">No impressions</div>
-            <div class="tree-node action-raise">Raise Bid +25%</div>
-          </div>
-          <div class="tree-branch">
-            <div class="branch-label">Impressions, no clicks</div>
-            <div class="tree-node action-monitor">Review Creative</div>
-          </div>
-          <div class="tree-branch">
-            <div class="branch-label">Clicks ≥ 10, 0 orders</div>
-            <div class="tree-node action-negate">Negate Keyword</div>
-          </div>
-          <div class="tree-branch">
-            <div class="branch-label">ACOS &gt; Break-even</div>
-            <div class="tree-node action-lower">Lower Bid −15%</div>
-          </div>
-          <div class="tree-branch">
-            <div class="branch-label">ACOS ≤ Target + 3+ orders</div>
-            <div class="tree-node action-skc">Isolate → SKC</div>
-          </div>
-          <div class="tree-branch">
-            <div class="branch-label">ACOS ≤ Target</div>
-            <div class="tree-node action-raise">Raise Bid +20%</div>
-          </div>
-        </div>
-      </div>
+    <!-- Summary cards -->
+    <div class="metrics-grid str-summary-grid" id="strSummary">
+      <div class="metric-card green"><div class="metric-label">Winners</div><div class="metric-value" id="str-winners-count">--</div></div>
+      <div class="metric-card red"><div class="metric-label">Bleeders</div><div class="metric-value" id="str-bleeders-count">--</div></div>
+      <div class="metric-card yellow"><div class="metric-label">Needs Data</div><div class="metric-value" id="str-needs-count">--</div></div>
+      <div class="metric-card"><div class="metric-label">Wasted Spend</div><div class="metric-value" id="str-wasted">--</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-chips" id="strFilters">
+      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="winner">Winners</button>
+      <button class="filter-chip" data-filter="bleeder">Bleeders</button>
+      <button class="filter-chip" data-filter="needs_data">Needs Data</button>
+    </div>
+
+    <!-- Bulk actions bar -->
+    <div class="bulk-actions-bar hidden" id="strBulkBar">
+      <span id="strSelectedCount">0 selected</span>
+      <button class="btn btn-danger btn-sm" onclick="negateSelected()">Negate Selected</button>
+    </div>
+
+    <div id="strContainer">
+      <div class="loading-placeholder">Loading search terms...</div>
     </div>
   </section>
 
-  <!-- ── TAB: STR HARVEST ───────────────────────────────────── -->
-  <section class="tab-content" id="tab-harvest">
+  <!-- TAB: AUTOMATION -->
+  <section class="tab-content" id="tab-automation">
     <div class="page-header">
-      <h1>Search Term Harvest</h1>
-      <p>Classify search terms from your STR report. Winners get promoted to SKC. Bleeders get negated.</p>
+      <h1>Automation Runner</h1>
+      <p>Run SOP workflows in order. Preview changes before applying.</p>
     </div>
 
-    <div class="card">
-      <h3 class="card-title">Add Search Term</h3>
-      <div class="str-input-grid">
-        <div class="input-group">
-          <label>Search Term</label>
-          <input type="text" id="str-term" placeholder="anti aging face cream" />
+    <!-- Step 1: Bid Optimization -->
+    <div class="runner-card" id="runner-bids">
+      <div class="runner-header">
+        <div class="runner-step">1</div>
+        <div class="runner-info">
+          <h3>Bid Optimization</h3>
+          <p>Run the SOP decision tree on all keywords. Preview bid changes before applying.</p>
         </div>
-        <div class="input-group">
-          <label>Clicks</label>
-          <input type="number" id="str-clicks" value="15" min="0" />
-        </div>
-        <div class="input-group">
-          <label>Orders</label>
-          <input type="number" id="str-orders" value="2" min="0" />
-        </div>
-        <div class="input-group">
-          <label>Spend ($)</label>
-          <input type="number" id="str-spend" value="18.50" min="0" step="0.01" />
-        </div>
-        <div class="input-group">
-          <label>Sales ($)</label>
-          <input type="number" id="str-sales" value="58.00" min="0" step="0.01" />
-        </div>
-        <button class="btn btn-primary" onclick="addSearchTerm()">Add Term</button>
+        <button class="btn btn-primary runner-btn" onclick="runBidOptimization()">Run</button>
       </div>
-      <button class="btn btn-secondary" onclick="loadSampleSTR()" style="margin-top:12px">Load Sample Data</button>
-      <button class="btn btn-amazon" onclick="loadSTRFromAmazon()">⬇ Load STR from Amazon</button>
-      <button class="btn btn-danger" id="pushNegativesBtn" onclick="pushNegativesToAmazon()" style="display:none">↑ Push Negatives to Amazon</button>
+      <div class="runner-results hidden" id="bidResults"></div>
     </div>
 
-    <div class="str-results" id="str-results">
-      <div class="str-summary hidden" id="str-summary"></div>
-      <div class="str-list" id="str-list"></div>
+    <!-- Step 2: Search Term Harvest -->
+    <div class="runner-card" id="runner-harvest">
+      <div class="runner-header">
+        <div class="runner-step">2</div>
+        <div class="runner-info">
+          <h3>Search Term Harvest</h3>
+          <p>Fetch the STR, identify bleeders to negate and winners to promote.</p>
+        </div>
+        <button class="btn btn-primary runner-btn" onclick="runSTRHarvest()">Run</button>
+      </div>
+      <div class="runner-results hidden" id="harvestResults"></div>
     </div>
+
+    <!-- Step 3: TACOS Check -->
+    <div class="runner-card" id="runner-tacos">
+      <div class="runner-header">
+        <div class="runner-step">3</div>
+        <div class="runner-info">
+          <h3>TACOS Check</h3>
+          <p>Calculate current TACOS and determine recommended phase.</p>
+        </div>
+        <button class="btn btn-primary runner-btn" onclick="runTacosCheck()">Run</button>
+      </div>
+      <div class="runner-results hidden" id="tacosResults"></div>
+    </div>
+
+    <!-- Step 4: Weekly Maintenance -->
+    <div class="runner-card" id="runner-weekly">
+      <div class="runner-header">
+        <div class="runner-step">4</div>
+        <div class="runner-info">
+          <h3>Weekly Maintenance</h3>
+          <p>Run all Monday checks in sequence (harvest + bids + TACOS).</p>
+        </div>
+        <button class="btn btn-primary runner-btn" onclick="runWeeklyMaintenance()">Run</button>
+      </div>
+      <div class="runner-results hidden" id="weeklyResults"></div>
+    </div>
+
+    <!-- Collapsible SOP Rules Reference -->
+    <details class="card rules-reference" style="margin-top:24px">
+      <summary class="card-title" style="cursor:pointer">SOP Automation Rules Reference</summary>
+      <div class="rules-filter" id="rulesFilter"></div>
+      <div id="rulesContainer"></div>
+    </details>
   </section>
 
-  <!-- ── TAB: LAUNCH ────────────────────────────────────────── -->
-  <section class="tab-content" id="tab-launch">
+  <!-- TAB: CAMPAIGN BUILDER -->
+  <section class="tab-content" id="tab-builder">
     <div class="page-header">
-      <h1>Launch Setup</h1>
-      <p>Pre-launch checklist. All required items must pass before creating campaigns.</p>
+      <h1>Campaign Builder</h1>
+      <p>Create the 6 SOP-required campaigns. Complete each step in order.</p>
     </div>
 
-    <div class="two-col">
+    <!-- Wizard steps indicator -->
+    <div class="step-wizard" id="builderSteps">
+      <div class="wizard-step active" data-step="1"><span class="wizard-num">1</span> Checklist</div>
+      <div class="wizard-step" data-step="2"><span class="wizard-num">2</span> Product</div>
+      <div class="wizard-step" data-step="3"><span class="wizard-num">3</span> Keywords</div>
+      <div class="wizard-step" data-step="4"><span class="wizard-num">4</span> Preview</div>
+      <div class="wizard-step" data-step="5"><span class="wizard-num">5</span> Create</div>
+    </div>
+
+    <!-- Step 1: Pre-Launch Checklist -->
+    <div class="builder-step active" id="builder-step-1">
       <div class="card">
         <h3 class="card-title">Pre-Launch Checklist</h3>
-        <div class="checklist" id="launch-checklist">
+        <p class="card-desc">All required items must pass before creating campaigns.</p>
+        <div class="checklist" id="builderChecklist">
           <label class="check-item required-item">
-            <input type="checkbox" id="chk-images" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>All 7 main images uploaded</strong>
-              <small>White background, lifestyle, infographic shots</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>All 7 main images uploaded</strong><small>White background, lifestyle, infographic</small></span>
             <span class="required-tag">Required</span>
           </label>
           <label class="check-item required-item">
-            <input type="checkbox" id="chk-copy" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>Title, bullets &amp; description optimized</strong>
-              <small>Target keyword in title. Top 3-5 KW in first 2 bullets.</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>Title, bullets & description optimized</strong><small>Target keyword in title</small></span>
             <span class="required-tag">Required</span>
           </label>
           <label class="check-item required-item">
-            <input type="checkbox" id="chk-backend" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>Backend search terms filled (250 bytes)</strong>
-              <small>Synonyms, misspellings, Spanish variants</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>Backend search terms filled (250 bytes)</strong><small>Synonyms, misspellings</small></span>
             <span class="required-tag">Required</span>
           </label>
           <label class="check-item required-item">
-            <input type="checkbox" id="chk-price" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>Price is competitive vs category avg</strong>
-              <small>At or slightly below average at launch</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>Price is competitive</strong><small>At or below category average</small></span>
             <span class="required-tag">Required</span>
           </label>
           <label class="check-item required-item">
-            <input type="checkbox" id="chk-inventory" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>Inventory covers 90+ days</strong>
-              <small>Never run out — resets ranking</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>Inventory covers 90+ days</strong><small>Stock-out resets ranking</small></span>
             <span class="required-tag">Required</span>
           </label>
           <label class="check-item">
-            <input type="checkbox" id="chk-aplus" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>A+ Content published</strong>
-              <small>Lifts conversion 5-10%. Recommended but not blocking.</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>A+ Content published</strong><small>Lifts CVR 5-10%</small></span>
             <span class="optional-tag">Optional</span>
           </label>
           <label class="check-item">
-            <input type="checkbox" id="chk-reviews" onchange="updateLaunchStatus()" />
-            <span class="check-label">
-              <strong>15+ reviews before scaling budget</strong>
-              <small>Use Vine or review request automation</small>
-            </span>
+            <input type="checkbox" class="builder-chk" />
+            <span class="check-label"><strong>15+ reviews</strong><small>Use Vine or review automation</small></span>
             <span class="optional-tag">Scaling</span>
           </label>
         </div>
+        <div class="builder-nav">
+          <div></div>
+          <button class="btn btn-primary" id="builderNext1" onclick="builderNext()" disabled>Next: Product Config</button>
+        </div>
       </div>
+    </div>
 
+    <!-- Step 2: Product & Budget -->
+    <div class="builder-step" id="builder-step-2">
       <div class="card">
-        <h3 class="card-title">Launch Status</h3>
-        <div class="launch-status-display" id="launch-status-display">
-          <div class="launch-status-icon" id="launch-icon">⏳</div>
-          <div class="launch-status-text" id="launch-status-text">Complete the checklist</div>
-          <div class="launch-status-sub" id="launch-status-sub"></div>
+        <h3 class="card-title">Product & Budget</h3>
+        <div class="form-stack">
+          <div class="input-group">
+            <label>Product Name</label>
+            <input type="text" id="bldr-product" value="" placeholder="e.g. LUXE-SERUM" />
+          </div>
+          <div class="input-group">
+            <label>Total Daily Budget ($)</label>
+            <input type="number" id="bldr-budget" value="100" min="10" step="5" />
+          </div>
+          <div class="input-group">
+            <label>Target ACOS (%)</label>
+            <input type="number" id="bldr-acos" value="30" min="5" max="100" step="1" />
+          </div>
         </div>
+        <div class="builder-nav">
+          <button class="btn btn-secondary" onclick="builderPrev()">Back</button>
+          <button class="btn btn-primary" onclick="builderNext()">Next: Keywords</button>
+        </div>
+      </div>
+    </div>
 
-        <div class="no-touch-section">
-          <h4>No-Touch Window</h4>
-          <div class="input-row">
-            <div class="input-group">
-              <label>Launch Date</label>
-              <input type="date" id="launch-date" oninput="updateNoTouch()" />
-            </div>
+    <!-- Step 3: Keywords & Targets -->
+    <div class="builder-step" id="builder-step-3">
+      <div class="card">
+        <h3 class="card-title">Keywords & Targets</h3>
+        <div class="form-stack">
+          <div class="input-group">
+            <label>Target Keywords (one per line, min 30)</label>
+            <textarea id="bldr-keywords" rows="8" placeholder="collagen face serum&#10;anti aging cream&#10;vitamin c serum for face&#10;..."></textarea>
+            <small class="kw-counter" id="bldr-kw-count">0 keywords</small>
           </div>
-          <div class="no-touch-result" id="no-touch-result">
-            Enter your launch date to track the 7-day no-touch window.
+          <div class="input-group">
+            <label>Competitor ASINs (one per line)</label>
+            <textarea id="bldr-asins" rows="3" placeholder="B0XXXXXX&#10;B0YYYYYY"></textarea>
           </div>
+          <div class="input-group">
+            <label>Brand Keywords (one per line)</label>
+            <textarea id="bldr-brand" rows="2" placeholder="luxe allur&#10;luxeallur serum"></textarea>
+          </div>
+          <div class="input-group">
+            <label>SKC Keyword (optional, proven winner only)</label>
+            <input type="text" id="bldr-skc" placeholder="e.g. collagen face serum" />
+          </div>
+        </div>
+        <div class="builder-nav">
+          <button class="btn btn-secondary" onclick="builderPrev()">Back</button>
+          <button class="btn btn-primary" onclick="builderPreview()">Preview Campaigns</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Preview -->
+    <div class="builder-step" id="builder-step-4">
+      <div class="card">
+        <h3 class="card-title">Campaign Preview (Dry Run)</h3>
+        <div id="builderPreviewContent" class="loading-placeholder">Generating preview...</div>
+        <div class="builder-nav">
+          <button class="btn btn-secondary" onclick="builderPrev()">Back</button>
+          <button class="btn btn-danger" id="builderCreateBtn" onclick="builderCreate()">Create Campaigns on Amazon</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Create Result -->
+    <div class="builder-step" id="builder-step-5">
+      <div class="card">
+        <h3 class="card-title">Campaign Creation Results</h3>
+        <div id="builderCreateContent"></div>
+        <div class="builder-nav">
+          <button class="btn btn-primary" onclick="builderReset()">Start Over</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── TAB: WEEKLY ────────────────────────────────────────── -->
-  <section class="tab-content" id="tab-weekly">
-    <div class="page-header">
-      <h1>Monday Maintenance Checklist</h1>
-      <p>Every Monday morning. Complete in order. Takes ~30 minutes.</p>
-    </div>
-
-    <div class="weekly-grid">
-      <div class="weekly-step card">
-        <div class="step-number">1</div>
-        <div class="step-content">
-          <h4>Download Reports</h4>
-          <p>Pull Search Term Report (STR), Keyword Performance Report, and Placement Report from Amazon Ads Console.</p>
-          <div class="step-actions">
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>STR downloaded (last 30 days)</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Keyword report downloaded</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Placement report downloaded</span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="weekly-step card">
-        <div class="step-number">2</div>
-        <div class="step-content">
-          <h4>Harvest Negatives</h4>
-          <p>Classify STR. Any term with 10+ clicks and 0 orders → add as Negative Exact. Any term losing money (ACOS &gt; break-even) → negate.</p>
-          <div class="step-actions">
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Bleeders identified</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Negatives added in Ads console</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Winners noted for SKC promotion</span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="weekly-step card">
-        <div class="step-number">3</div>
-        <div class="step-content">
-          <h4>Bid Adjustments</h4>
-          <p>Run the decision tree on each keyword. Raise winners. Lower bleeders. Negate lost causes. Isolate proven performers into SKC.</p>
-          <div class="step-actions">
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Keywords with 0 impressions → raise bid</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>High ACOS → lower bid 15%</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Low ACOS + sales → raise bid 20%</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>3+ orders at target → isolate to SKC</span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="weekly-step card">
-        <div class="step-number">4</div>
-        <div class="step-content">
-          <h4>Review Placements</h4>
-          <p>Check Top-of-Search vs Product Pages performance. Raise TOS modifier if ACOS ≤ target. Lower if above break-even.</p>
-          <div class="step-actions">
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>TOS ACOS reviewed per campaign</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Placement modifiers adjusted</span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="weekly-step card">
-        <div class="step-number">5</div>
-        <div class="step-content">
-          <h4>Check TACOS</h4>
-          <p>Calculate this week's TACOS. Compare to last week. Is organic growing? Are you ready to phase-shift?</p>
-          <div class="step-actions">
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>TACOS calculated</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Phase still appropriate</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Budget allocation reviewed</span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="weekly-step card">
-        <div class="step-number">6</div>
-        <div class="step-content">
-          <h4>Document &amp; Plan</h4>
-          <p>Log changes made. Note keywords promoted to SKC. Flag anything unusual for investigation.</p>
-          <div class="step-actions">
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Changes logged in tracker</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>New SKC campaigns set up if needed</span></label>
-            <label class="check-item"><input type="checkbox" class="weekly-chk" /><span>Next review scheduled (7 days)</span></label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card weekly-progress-card">
-      <h3 class="card-title">Session Progress</h3>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-track"><div class="progress-bar-fill" id="weekly-progress"></div></div>
-        <span id="weekly-progress-label">0 / 17 tasks</span>
-      </div>
-      <button class="btn btn-secondary" onclick="resetWeekly()">Reset Checklist</button>
-    </div>
-  </section>
-
-  <!-- ── TAB: AUTOMATION RULES ────────────────────────────────── -->
-  <section class="tab-content" id="tab-rules">
-    <div class="page-header">
-      <h1>Automation Rules</h1>
-      <p>Every SOP rule as a conditional expression. Thresholds: TARGET_ACOS=30%, BREAK_EVEN=45%, MIN_CLICKS=10.</p>
-      <div class="rules-meta">
-        <span class="rules-chip rules-chip-total">39 Rules</span>
-        <span class="rules-chip rules-chip-auto">22 Automatable</span>
-        <span class="rules-chip rules-chip-manual">17 Manual Review</span>
-      </div>
-    </div>
-
-    <!-- Section filter -->
-    <div class="rules-filter" id="rulesFilter"></div>
-
-    <!-- Rules container -->
-    <div id="rulesContainer"></div>
-
-    <!-- Formulas Reference -->
-    <div class="card" style="margin-top:24px">
-      <h3 class="card-title">Key Formulas</h3>
-      <div class="formula-grid">
-        <div class="formula-item"><div class="formula-label">ACOS</div><div class="formula-expr">adSpend / adRevenue</div><div class="formula-note">Target: &le; 30% | Break-even: 45%</div></div>
-        <div class="formula-item"><div class="formula-label">TACOS</div><div class="formula-expr">adSpend / totalRevenue</div><div class="formula-note">totalRevenue = ad + organic</div></div>
-        <div class="formula-item"><div class="formula-label">Break-Even</div><div class="formula-expr">(price - COGS - FBA - storage) / price</div><div class="formula-note">ACOS below this = profit</div></div>
-        <div class="formula-item"><div class="formula-label">CVR</div><div class="formula-expr">orders / clicks</div><div class="formula-note">Healthy: 10-20%+</div></div>
-        <div class="formula-item"><div class="formula-label">CTR</div><div class="formula-expr">clicks / impressions</div><div class="formula-note">Healthy: 0.3-0.5%+</div></div>
-        <div class="formula-item"><div class="formula-label">ROAS</div><div class="formula-expr">adRevenue / adSpend</div><div class="formula-note">Inverse of ACOS</div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── TAB: RULE FLOWS ────────────────────────────────────────── -->
-  <section class="tab-content" id="tab-flows">
-    <div class="page-header">
-      <h1>Rule Flows</h1>
-      <p>Visual decision flows with rule numbers. Every node maps to an automation rule.</p>
-    </div>
-    <div id="flowsContainer"></div>
-  </section>
-
-  <!-- ── TAB: SOP DIAGRAMS ─────────────────────────────────────── -->
-  <section class="tab-content" id="tab-diagrams">
-    <div class="page-header">
-      <h1>SOP Diagrams</h1>
-      <p>Visual flowcharts for every SOP phase. Rendered from Mermaid definitions.</p>
-    </div>
-    <div id="diagramsContainer"></div>
-  </section>
-
-  <!-- ── TAB: PENDING CHANGES ──────────────────────────────────── -->
+  <!-- TAB: PENDING CHANGES -->
   <section class="tab-content" id="tab-pending">
     <div class="page-header">
       <h1>Pending Changes</h1>
-      <p>Changes queued by the automation engine awaiting your approval. Enable <code>AUTO_APPLY=true</code> to skip this step.</p>
+      <p>Changes queued by the automation engine awaiting your approval.</p>
     </div>
     <div class="pending-actions-bar">
       <button class="btn btn-primary" onclick="approveAllPending()">Approve All</button>
@@ -688,15 +439,15 @@
       <span class="pending-count" id="pendingCount">0 pending</span>
     </div>
     <div id="pendingContainer" class="pending-container">
-      <div class="empty-state">No pending changes. The scheduler will populate this when jobs run.</div>
+      <div class="empty-state">No pending changes.</div>
     </div>
   </section>
 
-  <!-- ── TAB: ACTIVITY LOG ─────────────────────────────────────── -->
+  <!-- TAB: ACTIVITY LOG -->
   <section class="tab-content" id="tab-activity">
     <div class="page-header">
       <h1>Activity Log</h1>
-      <p>Full audit trail of every automated action — applied, queued, skipped, or failed.</p>
+      <p>Full audit trail of every automated action.</p>
     </div>
     <div class="activity-actions-bar">
       <button class="btn btn-secondary" onclick="loadActivityLog()">Refresh</button>
@@ -709,10 +460,9 @@
       </select>
     </div>
     <div id="activityContainer" class="activity-container">
-      <div class="empty-state">No activity yet. Start the backend server with a DATABASE_URL to enable logging.</div>
+      <div class="empty-state">No activity yet.</div>
     </div>
 
-    <!-- Job Runs -->
     <div class="card" style="margin-top:24px">
       <h3 class="card-title">Job Runs</h3>
       <div class="job-actions-bar">
@@ -727,14 +477,14 @@
 
 </main>
 
-<!-- Confirm modal for write operations -->
+<!-- Confirm modal -->
 <div class="modal-overlay hidden" id="confirmModal">
   <div class="modal-box">
     <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" id="modalConfirmBtn">Apply to Amazon</button>
+      <button class="btn btn-danger" id="modalConfirmBtn">Apply</button>
     </div>
   </div>
 </div>
