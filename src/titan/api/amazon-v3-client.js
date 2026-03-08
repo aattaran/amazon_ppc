@@ -70,7 +70,7 @@ class AmazonV3Client {
                     'Authorization': `Bearer ${token}`,
                     'Amazon-Advertising-API-ClientId': this.config.clientId,
                     'Amazon-Advertising-API-Scope': this.config.profileId,
-                    'Content-Type': 'application/json',
+                    'Content-Type': acceptHeader,
                     'Accept': acceptHeader
                 },
                 body: JSON.stringify(requestBody)
@@ -283,7 +283,7 @@ class AmazonV3Client {
                 'Authorization': `Bearer ${token}`,
                 'Amazon-Advertising-API-ClientId': this.config.clientId,
                 'Amazon-Advertising-API-Scope': this.config.profileId,
-                'Content-Type': 'application/json',
+                'Content-Type': acceptHeader,
                 'Accept': acceptHeader,
             },
         };
