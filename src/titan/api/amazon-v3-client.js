@@ -490,7 +490,7 @@ class AmazonV3Client {
                 groupBy: ['searchTerm'],
                 columns: [
                     'campaignId', 'campaignName', 'adGroupId', 'adGroupName',
-                    'targetingType', 'matchType', 'searchTerm',
+                    'matchType', 'searchTerm',
                     'impressions', 'clicks', 'cost', 'sales14d', 'purchases14d'
                 ],
                 reportTypeId: 'spSearchTerm',
