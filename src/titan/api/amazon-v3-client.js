@@ -36,6 +36,11 @@ class AmazonV3Client {
             negativeKeywordsMutate: 'application/vnd.spNegativeKeyword.v3+json',
             keywordsMutate: 'application/vnd.spKeyword.v3+json'
         };
+
+        // In-memory report cache to avoid 425 duplicate report errors
+        // Key: "reportType:startDate:endDate", Value: { rows, expiresAt }
+        this._reportCache = new Map();
+        this._reportCacheTtlMs = 5 * 60 * 1000; // 5 minutes
     }
 
     /**
@@ -474,12 +479,19 @@ class AmazonV3Client {
     async fetchSTRReport(lookbackDays = 30) {
         console.log(`📈 Fetching Search Term Report (last ${lookbackDays} days)...`);
 
-        const token = await this.tokenManager.getToken();
-
         const endDate = new Date().toISOString().split('T')[0];
         const tempStartDate = new Date();
         tempStartDate.setDate(tempStartDate.getDate() - lookbackDays);
         const startDate = tempStartDate.toISOString().split('T')[0];
+        const cacheKey = `spSearchTerm:${startDate}:${endDate}`;
+
+        const cached = this._reportCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+            console.log(`✅ STR Report served from cache (${cached.rows.length} rows)\n`);
+            return cached.rows;
+        }
+
+        const token = await this.tokenManager.getToken();
 
         const reportBody = {
             name: `Search Term Report - ${new Date().toISOString()}`,
@@ -545,6 +557,7 @@ class AmazonV3Client {
             orders: r.purchases14d
         }));
 
+        this._reportCache.set(cacheKey, { rows, expiresAt: Date.now() + this._reportCacheTtlMs });
         console.log(`✅ Fetched ${rows.length} search term rows\n`);
         return rows;
     }
@@ -554,6 +567,18 @@ class AmazonV3Client {
      */
     async fetchKeywordReport(lookbackDays = 30) {
         console.log(`📈 Fetching Keyword Report (last ${lookbackDays} days)...`);
+
+        const endDate = new Date().toISOString().split('T')[0];
+        const tempStart = new Date();
+        tempStart.setDate(tempStart.getDate() - lookbackDays);
+        const startDate = tempStart.toISOString().split('T')[0];
+        const cacheKey = `spTargeting:${startDate}:${endDate}`;
+
+        const cached = this._reportCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+            console.log(`✅ Keyword Report served from cache (${cached.rows.length} rows)\n`);
+            return cached.rows;
+        }
 
         const reportId = await this.requestReport('spTargeting', lookbackDays);
 
@@ -580,6 +605,7 @@ class AmazonV3Client {
             currentBid: 0
         }));
 
+        this._reportCache.set(cacheKey, { rows, expiresAt: Date.now() + this._reportCacheTtlMs });
         console.log(`✅ Fetched ${rows.length} keyword metric rows\n`);
         return rows;
     }

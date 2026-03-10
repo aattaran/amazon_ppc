@@ -13,6 +13,7 @@
     .section h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; }
     .tag { display: inline-block; background: #fff3d6; color: #b35c00; font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 99px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
     img { max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px; }
+    .mermaid { text-align: center; margin: 0 auto; }
     footer { text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 48px; }
   </style>
 </head>
@@ -23,43 +24,201 @@
   <div class="section">
     <span class="tag">Flow 1</span>
     <h2>Pre-Launch Readiness Check</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBBKFtTdGFydDogTmV3IFByb2R1Y3RdKSAtLT4gQntMaXN0aW5nIE9wdGltaXplZD99CiAgICBCIC0tIE5vIC0tPiBCMVtGaXg6IFRpdGxlIEJ1bGxldHMgQmFja2VuZCBLV3MgSW1hZ2VzXQogICAgQjEgLS0+IEIKICAgIEIgLS0gWWVzIC0tPiBDe1Jldmlld3MgPj0gMTU/fQogICAgQyAtLSBObyAtLT4gQzFbRW5yb2xsIGluIFZpbmUgb3IgUnVuIGdpdmVhd2F5c10KICAgIEMxIC0tPiBDCiAgICBDIC0tIFllcyAtLT4gRHtNYXJnaW4gQ2FsY3VsYXRlZD99CiAgICBEIC0tIE5vIC0tPiBEMVtQcmljZSBtaW51cyBDT0dTIG1pbnVzIEZCQSBtaW51cyBTdG9yYWdlID0gTWFyZ2luXQogICAgRDEgLS0+IEQyW1NldCBUYXJnZXQgQUNPUyBhbmQgQnJlYWstZXZlbiBBQ09TXQogICAgRDIgLS0+IEQKICAgIEQgLS0gWWVzIC0tPiBFe0tleXdvcmQgTGlzdCBSZWFkeSAzMC01MCBLV3M/fQogICAgRSAtLSBObyAtLT4gRTFbVXNlIEhlbGl1bTEwIG9yIERhdGFGb3JTRU9dCiAgICBFMSAtLT4gRQogICAgRSAtLSBZZXMgLS0+IEYoW1JlYWR5IHRvIExhdW5jaCBQUENdKQogICAgc3R5bGUgQSBmaWxsOiNmZjk5MDAsY29sb3I6I2ZmZixzdHJva2U6bm9uZQogICAgc3R5bGUgRiBmaWxsOiMwMGIzMDAsY29sb3I6I2ZmZixzdHJva2U6bm9uZQ==?type=png" alt="Pre-Launch Readiness Check" loading="lazy" />
+    <div class="mermaid">
+flowchart TD
+    A([Start: New Product]) --> B{Listing Optimized?}
+    B -- No --> B1[Fix: Title Bullets Backend KWs Images]
+    B1 --> B
+    B -- Yes --> C{Reviews >= 15?}
+    C -- No --> C1[Enroll in Vine or Run giveaways]
+    C1 --> C
+    C -- Yes --> D{Margin Calculated?}
+    D -- No --> D1[Price minus COGS minus FBA minus Storage = Margin]
+    D1 --> D2[Set Target ACOS and Break-even ACOS]
+    D2 --> D
+    D -- Yes --> E{Keyword List Ready 30-50 KWs?}
+    E -- No --> E1[Use Helium10 or DataForSEO]
+    E1 --> E
+    E -- Yes --> F([Ready to Launch PPC])
+    style A fill:#ff9900,color:#fff,stroke:none
+    style F fill:#00b300,color:#fff,stroke:none
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 2</span>
     <h2>Campaign Structure Architecture</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBzdWJncmFwaCBESVNDT1ZFUllbRGlzY292ZXJ5IExheWVyXQogICAgICAgIEExW0F1dG8gQ2FtcGFpZ24gTG93IGJpZCBIYXJ2ZXN0IHRlcm1zXQogICAgICAgIEEyW0Jyb2FkIGFuZCBQaHJhc2UgTWlkLWZ1bm5lbCBkaXNjb3ZlcnldCiAgICBlbmQKICAgIHN1YmdyYXBoIFJBTktJTkdbUmFua2luZyBMYXllcl0KICAgICAgICBCMVtSYW5raW5nIENhbXBhaWduIEV4YWN0IFRvcCA1LTEwIEtXcyBIaWdoIFRPUyBtb2RpZmllcl0KICAgICAgICBCMltTaW5nbGUgS2V5d29yZCBDYW1wYWlnbnMgU0tDIE9uZSBLVyBwZXIgY2FtcGFpZ25dCiAgICBlbmQKICAgIHN1YmdyYXBoIFRBUkdFVElOR1tUYXJnZXRpbmcgTGF5ZXJdCiAgICAgICAgQzFbUHJvZHVjdCBUYXJnZXRpbmcgQ29tcGV0aXRvciBBU0lOc10KICAgICAgICBDMltEZWZlbnNpdmUgQnJhbmQgT3duIGJyYW5kIG5hbWVdCiAgICBlbmQKICAgIEExIC0tIFdlZWtseSBoYXJ2ZXN0IHdpbm5pbmcgc2VhcmNoIHRlcm1zIC0tPiBCMgogICAgQTIgLS0gV2lubmluZyBLV3MgcHJvbW90ZSB0byBTS0MgLS0+IEIyCiAgICBCMSAtLSBQcm92ZW4gdG9wIEtXIGlzb2xhdGVkIGZvciBzY2FsZSAtLT4gQjIKICAgIHN0eWxlIEExIGZpbGw6I2ZmOTkwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBCMSBmaWxsOiMwMDc3YjYsY29sb3I6I2ZmZixzdHJva2U6bm9uZQogICAgc3R5bGUgQzEgZmlsbDojMDBiMzAwLGNvbG9yOiNmZmYsc3Ryb2tlOm5vbmUKICAgIHN0eWxlIEMyIGZpbGw6IzAwYjMwMCxjb2xvcjojZmZmLHN0cm9rZTpub25l?type=png" alt="Campaign Structure Architecture" loading="lazy" />
+    <div class="mermaid">
+flowchart LR
+    subgraph DISCOVERY[Discovery Layer]
+        A1[Auto Campaign Low bid Harvest terms]
+        A2[Broad and Phrase Mid-funnel discovery]
+    end
+    subgraph RANKING[Ranking Layer]
+        B1[Ranking Campaign Exact Top 5-10 KWs High TOS modifier]
+        B2[Single Keyword Campaigns SKC One KW per campaign]
+    end
+    subgraph TARGETING[Targeting Layer]
+        C1[Product Targeting Competitor ASINs]
+        C2[Defensive Brand Own brand name]
+    end
+    A1 -- Weekly harvest winning search terms --> B2
+    A2 -- Winning KWs promote to SKC --> B2
+    B1 -- Proven top KW isolated for scale --> B2
+    style A1 fill:#ff9900,color:#fff,stroke:none
+    style B1 fill:#0077b6,color:#fff,stroke:none
+    style C1 fill:#00b300,color:#fff,stroke:none
+    style C2 fill:#00b300,color:#fff,stroke:none
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 3</span>
     <h2>Launch Phase — Weeks 1–4</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBBKFtMYXVuY2ggRGF5XSkgLS0+IEJbU2V0IHVwIDQgY2FtcGFpZ25zIEF1dG8gRXhhY3QgUGhyYXNlIFBUXQogICAgQiAtLT4gQ1tTZXQgVE9TIG1vZGlmaWVyIDUwLTEwMCUgb24gUmFua2luZyBjYW1wYWlnbl0KICAgIEMgLS0+IERbV2FpdCA3IGRheXMgZG8gTk9UIGNoYW5nZSBhbnl0aGluZ10KICAgIEQgLS0+IEV7V2VlayAyIFB1bGwgU2VhcmNoIFRlcm0gUmVwb3J0fQogICAgRSAtLT4gRltXaW5uZXJzIENsaWNrcyBhbmQgU2FsZXMgYW5kIExvdyBBQ09TXQogICAgRSAtLT4gR1tCbGVlZGVycyBTcGVuZCBhbmQgMCBTYWxlc10KICAgIEYgLS0+IEYxW1Byb21vdGUgdG8gU0tDIGNhbXBhaWduXQogICAgRyAtLT4gRzFbQWRkIGFzIE5lZ2F0aXZlIEV4YWN0IGltbWVkaWF0ZWx5XQogICAgRjEgLS0+IEh7V2Vla3MgMy00IFNDQUxJTkcgcGhhc2V9CiAgICBHMSAtLT4gSAogICAgSCAtLT4gSVtJbmNyZWFzZSBidWRnZXRzIG9uIGNvbnZlcnRpbmcgY2FtcGFpZ25zXQogICAgSSAtLT4gS3tBQ09TIGFib3ZlIGJyZWFrLWV2ZW4/fQogICAgSyAtLSBZZXMgLS0+IEsxW05vcm1hbCB0aGlzIGlzIHJhbmsgaW52ZXN0bWVudF0KICAgIEsgLS0gTm8gLS0+IEsyW1NjYWxlIGhhcmRlciBpbmNyZWFzZSBiaWRzXQogICAgSzEgLS0+IEwoW01vbnRoIDIgQmVnaW4gT3B0aW1pemF0aW9uIFBoYXNlXSkKICAgIEsyIC0tPiBMCiAgICBzdHlsZSBBIGZpbGw6I2ZmOTkwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBMIGZpbGw6IzAwNzdiNixjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBLMSBmaWxsOiNlZWZmZjAsc3Ryb2tlOiMwMGIzMDA=?type=png" alt="Launch Phase — Weeks 1–4" loading="lazy" />
+    <div class="mermaid">
+flowchart TD
+    A([Launch Day]) --> B[Set up 4 campaigns Auto Exact Phrase PT]
+    B --> C[Set TOS modifier 50-100% on Ranking campaign]
+    C --> D[Wait 7 days do NOT change anything]
+    D --> E{Week 2 Pull Search Term Report}
+    E --> F[Winners Clicks and Sales and Low ACOS]
+    E --> G[Bleeders Spend and 0 Sales]
+    F --> F1[Promote to SKC campaign]
+    G --> G1[Add as Negative Exact immediately]
+    F1 --> H{Weeks 3-4 SCALING phase}
+    G1 --> H
+    H --> I[Increase budgets on converting campaigns]
+    I --> K{ACOS above break-even?}
+    K -- Yes --> K1[Normal this is rank investment]
+    K -- No --> K2[Scale harder increase bids]
+    K1 --> L([Month 2 Begin Optimization Phase])
+    K2 --> L
+    style A fill:#ff9900,color:#fff,stroke:none
+    style L fill:#0077b6,color:#fff,stroke:none
+    style K1 fill:#eefff0,stroke:#00b300
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 4</span>
     <h2>Bid Optimization Decision Tree</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBBKFtSZXZpZXcgS2V5d29yZF0pIC0tPiBCe0ltcHJlc3Npb25zP30KICAgIEIgLS0gTm9uZSAtLT4gQjFbUmFpc2UgYmlkIDIwLTMwJV0KICAgIEIgLS0gWWVzIC0tPiBDe0NsaWNrcz99CiAgICBDIC0tIE5vbmUgLS0+IEMxe0tleXdvcmQgcmVsZXZhbnQ/fQogICAgQzEgLS0gTm8gLS0+IEMyW1BhdXNlIG9yIFN3YXAgZm9yIGJldHRlciBLV10KICAgIEMxIC0tIFllcyAtLT4gQzNbQ2hlY2sgbWFpbiBpbWFnZSBhbmQgdGl0bGVdCiAgICBDIC0tIFllcyAtLT4gRHtTYWxlcz99CiAgICBEIC0tIE5vbmUgMTArIGNsaWNrcyAtLT4gRDFbUGF1c2UgYW5kIEFkZCBhcyBOZWdhdGl2ZV0KICAgIEQgLS0gTm9uZSBsZXNzIDEwIGNsaWNrcyAtLT4gRDJbV2FpdCBuZWVkIG1vcmUgZGF0YV0KICAgIEQgLS0gWWVzIC0tPiBFe0FDT1MgdnMgVGFyZ2V0P30KICAgIEUgLS0gSGlnaCBBQ09TIGZldyBzYWxlcyAtLT4gRTFbTG93ZXIgYmlkIDEwLTIwJV0KICAgIEUgLS0gSGlnaCBBQ09TIGdvb2Qgc2FsZXMgLS0+IEUye0RyaXZpbmcgb3JnYW5pYyByYW5rP30KICAgIEUyIC0tIFllcyAtLT4gRTNbS2VlcCBydW5uaW5nIHJhbmsgaW52ZXN0bWVudF0KICAgIEUyIC0tIE5vIC0tPiBFNFtMb3dlciBiaWQgMTAtMjAlXQogICAgRSAtLSBBdCB0YXJnZXQgLS0+IEU1W0xlYXZlIGl0IGFsb25lXQogICAgRSAtLSBMb3cgQUNPUyBnb29kIHNhbGVzIC0tPiBFNltJc29sYXRlIHRvIFNLQyBJbmNyZWFzZSBidWRnZXRdCiAgICBzdHlsZSBBIGZpbGw6I2ZmOTkwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBEMSBmaWxsOiNmZmVhZWEsc3Ryb2tlOiNjYzAwMDAKICAgIHN0eWxlIEUzIGZpbGw6I2VlZmZmMCxzdHJva2U6IzAwYjMwMAogICAgc3R5bGUgRTYgZmlsbDojZWVmOGZmLHN0cm9rZTojMDA3N2I2?type=png" alt="Bid Optimization Decision Tree" loading="lazy" />
+    <div class="mermaid">
+flowchart TD
+    A([Review Keyword]) --> B{Impressions?}
+    B -- None --> B1[Raise bid 20-30%]
+    B -- Yes --> C{Clicks?}
+    C -- None --> C1{Keyword relevant?}
+    C1 -- No --> C2[Pause or Swap for better KW]
+    C1 -- Yes --> C3[Check main image and title]
+    C -- Yes --> D{Sales?}
+    D -- None 10+ clicks --> D1[Pause and Add as Negative]
+    D -- None less 10 clicks --> D2[Wait need more data]
+    D -- Yes --> E{ACOS vs Target?}
+    E -- High ACOS few sales --> E1[Lower bid 10-20%]
+    E -- High ACOS good sales --> E2{Driving organic rank?}
+    E2 -- Yes --> E3[Keep running rank investment]
+    E2 -- No --> E4[Lower bid 10-20%]
+    E -- At target --> E5[Leave it alone]
+    E -- Low ACOS good sales --> E6[Isolate to SKC Increase budget]
+    style A fill:#ff9900,color:#fff,stroke:none
+    style D1 fill:#ffeaea,stroke:#cc0000
+    style E3 fill:#eefff0,stroke:#00b300
+    style E6 fill:#eef8ff,stroke:#0077b6
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 5</span>
     <h2>Sales Funnel Diagnostic</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBBKFtLZXl3b3JkIFNlYXJjaGVkXSkgLS0+IEJ7SW1wcmVzc2lvbnM/fQogICAgQiAtLSBObyAtLT4gQjFbRklYIFJhaXNlIGJpZCBDaGVjayBrZXl3b3JkIHJlbGV2YW5jZV0KICAgIEIgLS0gWWVzIC0tPiBDe0NsaWNrcz99CiAgICBDIC0tIE5vIC0tPiBDMVtGSVggV2VhayBtYWluIGltYWdlIEJhZCB0aXRsZSBIaWdoIHByaWNlXQogICAgQyAtLSBZZXMgLS0+IER7QWRkIHRvIENhcnQ/fQogICAgRCAtLSBObyAtLT4gRDFbRklYIExpc3RpbmcgcXVhbGl0eSBJbWFnZXMgQnVsbGV0cyBSZXZpZXdzXQogICAgRCAtLSBZZXMgLS0+IEV7UHVyY2hhc2U/fQogICAgRSAtLSBObyAtLT4gRTFbRklYIFByaWNlIFNoaXBwaW5nIHNwZWVkIFJldHVybiBwb2xpY3ldCiAgICBFIC0tIFllcyAtLT4gRntPcmdhbmljIHJhbmsgaW1wcm92aW5nP30KICAgIEYgLS0gTm8gLS0+IEYxW0ZJWCBJbmNyZWFzZSBidWRnZXQgRXh0ZXJuYWwgdHJhZmZpYyBTb2NpYWwgbWVkaWFdCiAgICBGIC0tIFllcyAtLT4gRyhbSGVhbHRoeSBGdW5uZWxdKQogICAgc3R5bGUgQSBmaWxsOiNmZjk5MDAsY29sb3I6I2ZmZixzdHJva2U6bm9uZQogICAgc3R5bGUgRyBmaWxsOiMwMGIzMDAsY29sb3I6I2ZmZixzdHJva2U6bm9uZQogICAgc3R5bGUgQjEgZmlsbDojZmZlYWVhLHN0cm9rZTojY2MwMDAwCiAgICBzdHlsZSBDMSBmaWxsOiNmZmVhZWEsc3Ryb2tlOiNjYzAwMDAKICAgIHN0eWxlIEQxIGZpbGw6I2ZmZWFlYSxzdHJva2U6I2NjMDAwMAogICAgc3R5bGUgRTEgZmlsbDojZmZlYWVhLHN0cm9rZTojY2MwMDAwCiAgICBzdHlsZSBGMSBmaWxsOiNmZmYzZDYsc3Ryb2tlOiNmZjk5MDA=?type=png" alt="Sales Funnel Diagnostic" loading="lazy" />
+    <div class="mermaid">
+flowchart LR
+    A([Keyword Searched]) --> B{Impressions?}
+    B -- No --> B1[FIX Raise bid Check keyword relevance]
+    B -- Yes --> C{Clicks?}
+    C -- No --> C1[FIX Weak main image Bad title High price]
+    C -- Yes --> D{Add to Cart?}
+    D -- No --> D1[FIX Listing quality Images Bullets Reviews]
+    D -- Yes --> E{Purchase?}
+    E -- No --> E1[FIX Price Shipping speed Return policy]
+    E -- Yes --> F{Organic rank improving?}
+    F -- No --> F1[FIX Increase budget External traffic Social media]
+    F -- Yes --> G([Healthy Funnel])
+    style A fill:#ff9900,color:#fff,stroke:none
+    style G fill:#00b300,color:#fff,stroke:none
+    style B1 fill:#ffeaea,stroke:#cc0000
+    style C1 fill:#ffeaea,stroke:#cc0000
+    style D1 fill:#ffeaea,stroke:#cc0000
+    style E1 fill:#ffeaea,stroke:#cc0000
+    style F1 fill:#fff3d6,stroke:#ff9900
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 6</span>
     <h2>Scaling Phase — Budget Allocation</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IFRECiAgICBBKFtTdGFydCBTY2FsaW5nXSkgLS0+IEJ7VEFDT1MgaGVhbHRoeT99CiAgICBCIC0tIE5vIC0tPiBCMVtGaXggb3B0aW1pemF0aW9uIGZpcnN0XQogICAgQiAtLSBZZXMgLS0+IENbVG90YWwgTW9udGhseSBQUEMgQnVkZ2V0XQogICAgQyAtLT4gRFs1MHBjdCBQcm92ZW4gU0tDIENhbXBhaWduc10KICAgIEMgLS0+IEVbMjVwY3QgRGlzY292ZXJ5IEF1dG8gQnJvYWQgUGhyYXNlXQogICAgQyAtLT4gRlsxNXBjdCBDb21wZXRpdG9yIEFTSU4gVGFyZ2V0aW5nXQogICAgQyAtLT4gR1sxMHBjdCBEZWZlbnNpdmUgQnJhbmQgQ2FtcGFpZ25zXQogICAgRCAtLT4gSFtJbmNyZWFzZSBiaWRzIG9uIHRvcCA1IFNLQyBrZXl3b3Jkc10KICAgIEUgLS0+IElbSGFydmVzdCBuZXcgdGVybXMgd2Vla2x5IGZyb20gQXV0b10KICAgIEYgLS0+IEpbVGFyZ2V0IHRvcCAzLTUgY29tcGV0aXRvciBBU0lOc10KICAgIEcgLS0+IEtbUHJvdGVjdCBicmFuZGVkIHNlYXJjaCB0cmFmZmljXQogICAgSCAmIEkgJiBKICYgSyAtLT4gTHtFeHRlcm5hbCBUcmFmZmljP30KICAgIEwgLS0gTm90IHlldCAtLT4gTVtMYXVuY2ggVGlrVG9rIEluc3RhZ3JhbSBGYWNlYm9vayBWaW5lXQogICAgTCAtLSBSdW5uaW5nIC0tPiBOKFtGdWxsIFNjYWxpbmcgTW9kZV0pCiAgICBNIC0tPiBOCiAgICBzdHlsZSBBIGZpbGw6I2ZmOTkwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBOIGZpbGw6IzAwYjMwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBCMSBmaWxsOiNmZmVhZWEsc3Ryb2tlOiNjYzAwMDA=?type=png" alt="Scaling Phase — Budget Allocation" loading="lazy" />
+    <div class="mermaid">
+flowchart TD
+    A([Start Scaling]) --> B{TACOS healthy?}
+    B -- No --> B1[Fix optimization first]
+    B -- Yes --> C[Total Monthly PPC Budget]
+    C --> D[50pct Proven SKC Campaigns]
+    C --> E[25pct Discovery Auto Broad Phrase]
+    C --> F[15pct Competitor ASIN Targeting]
+    C --> G[10pct Defensive Brand Campaigns]
+    D --> H[Increase bids on top 5 SKC keywords]
+    E --> I[Harvest new terms weekly from Auto]
+    F --> J[Target top 3-5 competitor ASINs]
+    G --> K[Protect branded search traffic]
+    H & I & J & K --> L{External Traffic?}
+    L -- Not yet --> M[Launch TikTok Instagram Facebook Vine]
+    L -- Running --> N([Full Scaling Mode])
+    M --> N
+    style A fill:#ff9900,color:#fff,stroke:none
+    style N fill:#00b300,color:#fff,stroke:none
+    style B1 fill:#ffeaea,stroke:#cc0000
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 7</span>
     <h2>Weekly Maintenance Cycle</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBBKFtNb25kYXkgTW9ybmluZ10pIC0tPiBCW1B1bGwgU2VhcmNoIFRlcm0gUmVwb3J0XQogICAgQiAtLT4gQ1tBZGQgYmxlZWRlcnMgYXMgTmVnYXRpdmUgRXhhY3RdCiAgICBDIC0tPiBEW1Byb21vdGUgd2lubmVycyB0byBTS0NdCiAgICBEIC0tPiBFW1JldmlldyB0b3AgMjAgS1dzIEFkanVzdCBiaWRzXQogICAgRSAtLT4gRltDaGVjayBwbGFjZW1lbnQgcmVwb3J0IFRPUyB2cyBQcm9kdWN0IFBhZ2VzXQogICAgRiAtLT4gR1tSZXZpZXcgYnVkZ2V0IHV0aWxpemF0aW9uXQogICAgRyAtLT4gSHtDYW1wYWlnbnMgaGl0dGluZyBidWRnZXQgY2FwP30KICAgIEggLS0gWWVzIC0tPiBIMVtJbmNyZWFzZSBidWRnZXQgb3Igc2hpZnQgZnJvbSBsb3cgcGVyZm9ybWVyc10KICAgIEggLS0gTm8gLS0+IElbQ2hlY2sgb3JnYW5pYyByYW5rIGZvciB0b3AgNSBLV3NdCiAgICBIMSAtLT4gSQogICAgSSAtLT4gSltDYWxjdWxhdGUgVEFDT1MgZm9yIHRoZSB3ZWVrXQogICAgSiAtLT4gS3tUQUNPUyB0cmVuZD99CiAgICBLIC0tIEltcHJvdmluZyAtLT4gSzFbU3RheSBpbiBjdXJyZW50IHBoYXNlXQogICAgSyAtLSBXb3JzZW5pbmcgLS0+IEsyW1BhdXNlIHNjYWxpbmcgUmV0dXJuIHRvIG9wdGltaXphdGlvbl0KICAgIEsgLS0gU3RhYmxlIC0tPiBLM1tDb250aW51ZSBjdXJyZW50IHBoYXNlXQogICAgSzEgJiBLMiAmIEszIC0tPiBMKFtEb25lIFNlZSB5b3UgbmV4dCBNb25kYXldKQogICAgc3R5bGUgQSBmaWxsOiNmZjk5MDAsY29sb3I6I2ZmZixzdHJva2U6bm9uZQogICAgc3R5bGUgTCBmaWxsOiMwMGIzMDAsY29sb3I6I2ZmZixzdHJva2U6bm9uZQogICAgc3R5bGUgSzIgZmlsbDojZmZlYWVhLHN0cm9rZTojY2MwMDAw?type=png" alt="Weekly Maintenance Cycle" loading="lazy" />
+    <div class="mermaid">
+flowchart LR
+    A([Monday Morning]) --> B[Pull Search Term Report]
+    B --> C[Add bleeders as Negative Exact]
+    C --> D[Promote winners to SKC]
+    D --> E[Review top 20 KWs Adjust bids]
+    E --> F[Check placement report TOS vs Product Pages]
+    F --> G[Review budget utilization]
+    G --> H{Campaigns hitting budget cap?}
+    H -- Yes --> H1[Increase budget or shift from low performers]
+    H -- No --> I[Check organic rank for top 5 KWs]
+    H1 --> I
+    I --> J[Calculate TACOS for the week]
+    J --> K{TACOS trend?}
+    K -- Improving --> K1[Stay in current phase]
+    K -- Worsening --> K2[Pause scaling Return to optimization]
+    K -- Stable --> K3[Continue current phase]
+    K1 & K2 & K3 --> L([Done See you next Monday])
+    style A fill:#ff9900,color:#fff,stroke:none
+    style L fill:#00b300,color:#fff,stroke:none
+    style K2 fill:#ffeaea,stroke:#cc0000
+    </div>
   </div>
   <div class="section">
     <span class="tag">Flow 8</span>
     <h2>TACOS Journey — Launch to Organic</h2>
-    <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBBKFtNb250aCAxLTIgTGF1bmNoIFRBQ09TIDI1LTQwJV0pIC0tPiBCKFtNb250aCAzLTQgR3Jvd3RoIFRBQ09TIDE1LTI1JV0pCiAgICBCIC0tPiBDKFtNb250aCA1LTYgTW9tZW50dW0gVEFDT1MgMTAtMTUlXSkKICAgIEMgLS0+IEQoW01vbnRoIDYrIE1hdHVyZSBUQUNPUyA4LTEyJV0pCiAgICBEIC0tPiBFKFtPcmdhbmljIExlYWRlcl0pCiAgICBzdHlsZSBBIGZpbGw6I2ZmNDQ0NCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBCIGZpbGw6I2ZmOTkwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBDIGZpbGw6IzAwNzdiNixjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBEIGZpbGw6IzAwYjMwMCxjb2xvcjojZmZmLHN0cm9rZTpub25lCiAgICBzdHlsZSBFIGZpbGw6IzAwNWYwMCxjb2xvcjojZmZmLHN0cm9rZTpub25l?type=png" alt="TACOS Journey — Launch to Organic" loading="lazy" />
+    <div class="mermaid">
+flowchart LR
+    A([Month 1-2 Launch TACOS 25-40%]) --> B([Month 3-4 Growth TACOS 15-25%])
+    B --> C([Month 5-6 Momentum TACOS 10-15%])
+    C --> D([Month 6+ Mature TACOS 8-12%])
+    D --> E([Organic Leader])
+    style A fill:#ff4444,color:#fff,stroke:none
+    style B fill:#ff9900,color:#fff,stroke:none
+    style C fill:#0077b6,color:#fff,stroke:none
+    style D fill:#00b300,color:#fff,stroke:none
+    style E fill:#005f00,color:#fff,stroke:none
+    </div>
   </div>
-<footer>Amazon PPC SOP &nbsp;|&nbsp; Generated via mermaid.ink &nbsp;|&nbsp; March 2026</footer>
+<footer>Amazon PPC SOP &nbsp;|&nbsp; Rendered with Mermaid.js &nbsp;|&nbsp; March 2026</footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default' });
+</script>
 </body>
 </html>

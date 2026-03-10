@@ -178,6 +178,7 @@ app.post('/api/campaigns/create', wrap(async (req, res) => {
 // ── Serve static web UI ───────────────────────────────────────
 import path from 'path';
 app.use(express.static(path.join(__dirname, '..', 'web')));
+app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 
 // ── GET /api/pending — list pending changes ───────────────────
 app.get('/api/pending', wrap(async (_req, res) => {
