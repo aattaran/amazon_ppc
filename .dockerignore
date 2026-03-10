@@ -5,7 +5,8 @@ data/
 *.db
 *.log
 .git
-docs/
+docs/*.md
+docs/planning/
 B2/
 amazon-search.png
 !tsconfig.json
