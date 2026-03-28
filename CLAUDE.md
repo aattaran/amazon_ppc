@@ -11,6 +11,12 @@ npm start            # Run compiled dist/server.js
 npm test             # Run Jest tests
 npm run lint         # ESLint on src/**/*.ts
 npm run server       # Run server via ts-node (no hot reload)
+
+# Single test file
+npx jest path/to/test.ts
+
+# Tests matching a name pattern
+npx jest -t "pattern"
 ```
 
 ### SOP workflow scripts (ts-node --esm)
@@ -27,6 +33,10 @@ npm run weekly-maintenance # scripts/weekly-maintenance.ts — weekly maintenanc
 ### Standalone root-level JS scripts (run directly with `node`)
 
 ```bash
+node bulk-bid-reduce.js                 # Bulk bid reduction across campaigns
+node diagnose-no-sales.js              # Diagnose campaigns with spend but no sales
+node ppc-diagnosis.js                  # General PPC performance diagnosis
+node launch-skc-winners.js            # Launch single-keyword campaigns for winners
 node detect-bleeders-daily.js          # Daily ACOS monitoring + bleeder flagging
 node analyze-campaigns.js              # Analyze campaigns from bulk export XLSX
 node generate-conservative-bulksheet.js # Generate Amazon-compatible XLSX for upload
@@ -36,7 +46,7 @@ node get-refresh-token.js              # Acquire Amazon LWA OAuth refresh token
 
 ## Architecture
 
-Mixed JS/TypeScript codebase. Root-level `*.js` files are standalone analysis tools. Structured source lives in `src/`. TypeScript compiles to `dist/` via CommonJS (`module: "commonjs"`, target ES2020).
+Mixed JS/TypeScript codebase. Root-level `*.js` files are standalone analysis tools. Structured source lives in `src/`. TypeScript compiles to `dist/` via CommonJS (`module: "commonjs"`, target ES2020). Tests excluded from compilation (`**/*.test.ts` in tsconfig exclude).
 
 ### Express API Server (`src/server.ts`, port 3001)
 
@@ -77,6 +87,10 @@ Rule-based PPC optimization engine with phased workflows:
 
 Changes can be auto-applied or queued for human approval (controlled by `AUTO_APPLY` env var). The `pending_changes` PostgreSQL table holds queued changes.
 
+### Services (`src/services/`)
+
+- `amazon-ads-api.client.ts` — TypeScript wrapper around the Amazon Ads API (complements Titan's JS client)
+
 ### Database Layer (`src/database/`)
 
 - `db.ts` — PostgreSQL connection pool (`DATABASE_URL` env var, falls back to error if unset)
@@ -97,6 +111,14 @@ SOP workflows       ---> PostgreSQL audit_log + pending_changes
 ```
 
 The keyword pipeline has an approve/deny workflow: keywords push to Google Sheets for human review, approved keywords pull back for campaign application.
+
+### Web UI (`web/`)
+
+Plain HTML/JS/CSS static frontend served by Express. Provides a dashboard for SOP workflows, pending change approval, job history, and audit log.
+
+### Google Apps Script (`Code.gs`)
+
+A standalone Google Apps Script project (NOT Node.js) bound to the PPC spreadsheet. Runs a two-phase async reporting pipeline within Google Sheets.
 
 ## Deployment
 
