@@ -47,3 +47,9 @@ test-results/
 data/brand-analytics/*.csv
 performance-report.txt
 test-output.txt
+
+# Listings assets (PSD, high-res images, design files — too large for git)
+listings/
+
+# Debug artifacts
+docs/mermaid-debug-report.txt

@@ -310,7 +310,7 @@ class AmazonV3Client {
         const body = {
             keywords: updates.map(u => ({
                 keywordId: u.keywordId,
-                bid: { value: u.bid.toFixed(2), currencyCode: 'USD' }
+                bid: parseFloat(u.bid.toFixed(2))
             }))
         };
 

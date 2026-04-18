@@ -8,6 +8,7 @@
  *   Daily  8:00 AM — Bid optimization + Search term harvest
  *   Daily  9:00 AM — TACOS check
  *   Monday 6:00 AM — Full weekly maintenance
+ *   Monday 7:00 AM — SKC winner campaign health check
  */
 
 import cron from 'node-cron';
@@ -68,6 +69,15 @@ export function initScheduler(client: any): void {
       runFullWeeklyJob().catch(console.error);
     }, { timezone: 'America/New_York' });
     console.log('  Scheduled: Weekly maintenance on Mondays at 6:00 AM ET');
+  }
+
+  // ── Monday 7:00 AM — SKC Winner Campaign Health Check ──────────────────
+  if (enabled('ENABLE_SKC_REVIEW')) {
+    cron.schedule('0 7 * * 1', () => {
+      console.log('\n⏰ [CRON] Running SKC winner health check...');
+      runSkcReviewJob().catch(console.error);
+    }, { timezone: 'America/New_York' });
+    console.log('  Scheduled: SKC health check on Mondays at 7:00 AM ET');
   }
 
   console.log('Scheduler initialized\n');
@@ -256,6 +266,105 @@ export async function runTacosCheckJob() {
   });
 }
 
+// ── Job: SKC Winner Campaign Health Check ─────────────────────────────────
+// Checks the 7 SKC campaigns created 2026-03-18 + 2 unpaused campaigns.
+// Flags zero-impression keywords (bid too low) and high-ACoS keywords.
+
+const SKC_CAMPAIGN_IDS = [
+  '260562196435158', // glucogold advanced with berberine (GOLD — 4.6% ACoS)
+  '68359876355904',  // glucovantage dihydroberberine
+  '67944689979205',  // dihydroberberine supplement 200mg
+  '144866843863419', // dihydroberberine
+  '118488738700530', // glucovantage
+  '44951038546761',  // glaucoma supplement
+  '218897811836401', // bitter melon
+  '39356579356574',  // berberine asin ne1 (unpaused)
+  '181855555240147', // berberine exact new 11 (unpaused, 224 kw → $0.49)
+];
+
+const SKC_MAX_BID = 1.50;  // never raise above this
+const SKC_MIN_BID = 0.25;  // never lower below this
+
+export async function runSkcReviewJob() {
+  return runJob('skc-review', async () => {
+    const changes: ChangeRequest[] = [];
+
+    // Fetch 7-day performance report for all SKC campaigns
+    const kwRows: any[] = await amazonClient.fetchKeywordReport(7);
+    const skcRows = kwRows.filter((r: any) => SKC_CAMPAIGN_IDS.includes(String(r.campaignId)));
+
+    // Fetch live keyword objects to get current bid values
+    const liveKeywords: any[] = await amazonClient.fetchKeywords({ include: ['ENABLED', 'PAUSED'] });
+    const bidMap = new Map<string, number>();
+    for (const kw of liveKeywords) {
+      if (kw.keywordId && kw.bid != null) {
+        bidMap.set(String(kw.keywordId), typeof kw.bid === 'object' ? kw.bid.value : kw.bid);
+      }
+    }
+
+    console.log(`  SKC review: ${skcRows.length} keyword rows, ${bidMap.size} live bids fetched`);
+
+    for (const row of skcRows) {
+      const kwId = String(row.keywordId ?? '');
+      if (!kwId) continue;
+      const currentBid: number = bidMap.get(kwId) ?? 0.49;
+      const acos = (row.sales ?? 0) > 0 ? row.spend / row.sales : null;
+      const kwLabel = `${row.keyword ?? row.campaignName} [${row.matchType ?? 'EXACT'}]`;
+
+      // R_SKC_01: Zero impressions → +25% bid (buried, needs visibility)
+      if ((row.impressions ?? 0) === 0 && (row.clicks ?? 0) === 0) {
+        const newBid = Math.min(+(currentBid * 1.25).toFixed(2), SKC_MAX_BID);
+        changes.push({
+          ruleId: 'R_SKC_01',
+          entityType: 'keyword',
+          entityId: kwId,
+          entityName: kwLabel,
+          action: 'raise_bid',
+          oldValue: `$${currentBid.toFixed(2)}`,
+          newValue: `$${newBid.toFixed(2)}`,
+          reason: `"${row.campaignName}" — 0 impressions in 7d. Raising bid +25% to rescue buried keyword.`,
+          apply: async () => {
+            await amazonClient.apiRequest('PUT', '/sp/keywords',
+              'application/vnd.spKeyword.v3+json',
+              { keywords: [{ keywordId: kwId, bid: newBid }] });
+          },
+        });
+      }
+
+      // R_SKC_02: High ACoS (>50%) with ≥5 clicks → -15% bid
+      if (acos != null && acos > 0.5 && (row.clicks ?? 0) >= 5) {
+        const newBid = Math.max(+(currentBid * 0.85).toFixed(2), SKC_MIN_BID);
+        const acosStr = `${(acos * 100).toFixed(1)}%`;
+        changes.push({
+          ruleId: 'R_SKC_02',
+          entityType: 'keyword',
+          entityId: kwId,
+          entityName: kwLabel,
+          action: 'lower_bid',
+          oldValue: `$${currentBid.toFixed(2)} (ACoS ${acosStr})`,
+          newValue: `$${newBid.toFixed(2)}`,
+          reason: `"${row.campaignName}" — ACoS ${acosStr} with ${row.clicks} clicks. Reducing bid -15%.`,
+          apply: async () => {
+            await amazonClient.apiRequest('PUT', '/sp/keywords',
+              'application/vnd.spKeyword.v3+json',
+              { keywords: [{ keywordId: kwId, bid: newBid }] });
+          },
+        });
+      }
+    }
+
+    // Summary
+    const spend  = skcRows.reduce((s: number, r: any) => s + (r.spend  ?? 0), 0);
+    const sales  = skcRows.reduce((s: number, r: any) => s + (r.sales  ?? 0), 0);
+    const orders = skcRows.reduce((s: number, r: any) => s + (r.orders ?? 0), 0);
+    const acosStr = sales > 0 ? `${((spend / sales) * 100).toFixed(1)}%` : 'no sales yet';
+    console.log(`  SKC 7d: spend=$${spend.toFixed(2)}, sales=$${sales.toFixed(2)}, orders=${orders}, ACoS=${acosStr}`);
+    console.log(`  Actions to apply: ${changes.length}`);
+
+    return changes;
+  });
+}
+
 // ── Job: Full Weekly Maintenance ──────────────────────────────────────────
 
 export async function runFullWeeklyJob() {
@@ -273,6 +382,7 @@ export async function triggerJob(jobName: string) {
     case 'search-term-harvest': return runSearchTermHarvestJob();
     case 'tacos-check': return runTacosCheckJob();
     case 'weekly-maintenance': return runFullWeeklyJob();
+    case 'skc-review': return runSkcReviewJob();
     default: throw new Error(`Unknown job: ${jobName}`);
   }
 }
