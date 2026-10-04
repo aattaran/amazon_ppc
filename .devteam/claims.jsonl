@@ -1,2 +1,3 @@
 {"kind": "main-agent", "operator_said": "you are new main agent for this repo. check the handoffs", "session": "ab896412-bc35-476e-b129-79042fa3c705", "session_uuid": "ab896412-bc35-476e-b129-79042fa3c705", "ts": "2026-10-04T00:37:12Z"}
 {"area": "ads-account", "branch": "main", "expires": "2026-10-04T02:23:37Z", "kind": "claim", "note": "applying operator-approved ranked SP plan 2026-10-04 (pause SKC_EXACT, Impression Share bid/budget/TOS cuts, keyword pauses, negatives, ASIN bid trims)", "session": "ab896412-bc35-476e-b129-79042fa3c705", "tree": "desktop-dokpj1m:c:/users/user/.cursor/workspaces/amazon_ppc/amazon_ppc", "ts": "2026-10-04T01:23:37Z"}
+{"area": "ads-account", "kind": "release", "session": "ab896412-bc35-476e-b129-79042fa3c705", "ts": "2026-10-04T01:44:48Z"}
